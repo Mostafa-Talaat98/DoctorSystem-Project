@@ -1,4 +1,4 @@
-import userModel from "../../DB/models/auth.model.js";
+import patientModel from "../../DB/models/auth.model.js";
 import bcrypt from "bcryptjs";
 export const register = async (req, res, next) => {
   try {
@@ -19,7 +19,7 @@ export const register = async (req, res, next) => {
       role,
     });
 
-    sendVerifyPhoneOtp({ phoneNumber });
+    sendVerifyEmailOtp({ email });
 
     return res
       .status(201)

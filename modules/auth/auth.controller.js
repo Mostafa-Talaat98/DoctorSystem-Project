@@ -1,8 +1,8 @@
-import userModel from "./auth.model.js";
+import userModel from "../../DB/models/auth.model.js";
 import bcrypt from "bcryptjs";
 export const register = async (req, res, next) => {
   try {
-    const { userName, email, password, phoneNumber } = req.body;
+    const { userName, email, password, phoneNumber, role } = req.body;
 
     const userCheck = await userModel.findOne({ email });
     if (userCheck) {
@@ -16,7 +16,10 @@ export const register = async (req, res, next) => {
       email,
       password: hashedPassword,
       phoneNumber,
+      role,
     });
+
+    sendVerifyPhoneOtp({ phoneNumber });
 
     return res
       .status(201)

@@ -17,6 +17,7 @@ const authToken = process.env.TWILIO_AUTH_TOKEN;
 const client = new Twilio(accountSid, authToken);
 
 export async function sendVerifyPhoneOtp({ phoneNumber }) {
+
   const normalizedPhone = normalizePhone(phoneNumber);
 
   if (!normalizedPhone || !/^\+20\d{10}$/.test(normalizedPhone)) {
@@ -24,7 +25,7 @@ export async function sendVerifyPhoneOtp({ phoneNumber }) {
   }
 
   const otp = generate({
-    length: 5,
+    length: 4,
     charset: "numeric",
   });
 
@@ -34,7 +35,11 @@ export async function sendVerifyPhoneOtp({ phoneNumber }) {
     type: OtpType.VERIFY_PHONE_NUMBER,
   });
 
-  try {
+  if(!newOTP){
+    throw new Error("Fail To Create New OTP");
+  }
+
+  try {                                                                 
     const newMessage = await client.messages.create({
       body: `Your OTP Code To Active Doctor Appointment Account Is: ${otp} , OTP Expires in 5 min. If you didn't request this, ignore it.`,
       from: process.env.TWILIO_PHONE_NUMBER,

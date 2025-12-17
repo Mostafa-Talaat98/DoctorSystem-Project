@@ -1,4 +1,5 @@
 import userModel from "../../DB/models/auth.model";
+import { sendVerifyPhoneOtp } from "./Otp/otp.service";
 
 export const register = async (req, res, next) => {
   try {
@@ -15,6 +16,13 @@ export const register = async (req, res, next) => {
       password,
       phoneNumber,
     });
+
+
+
+    sendVerifyPhoneOtp({
+      phoneNumber
+    })
+
 
     return res
       .status(201)

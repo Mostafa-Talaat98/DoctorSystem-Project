@@ -20,7 +20,7 @@ export async function sendVerifyEmailOtp({ email }) {
   }
 
   const otp = generate({
-    length: 6,
+    length: 4,
     charset: "numeric",
   });
 

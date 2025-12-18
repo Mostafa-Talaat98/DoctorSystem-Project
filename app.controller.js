@@ -5,6 +5,7 @@ const bootstrap = async (app, express) => {
   app.use(express.json());
 
   await connectDB();
+
   
   app.use("/auth", authRouter);
 

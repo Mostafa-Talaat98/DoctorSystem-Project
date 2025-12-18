@@ -1,6 +1,6 @@
 import mongoose, { Schema, model } from "mongoose";
 
-export const patientSchema = new Schema(
+const PatientSchema = new Schema(
   {
     fullName: {
       type: String,
@@ -23,19 +23,18 @@ export const patientSchema = new Schema(
       type: Boolean,
       default: false,
     },
-    birthday:{
+    birthday: {
       type: Date,
       required: true,
-      min: 18
-    }
+      min: 18,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-
-export const doctorSchema = new Schema(
+const DoctorSchema = new Schema(
   {
     fullName: {
       type: String,
@@ -57,6 +56,11 @@ export const doctorSchema = new Schema(
       trim: true,
     },
 
+    isVerified: {
+      type: Boolean,
+      default: false,
+    },
+
     password: {
       type: String,
       required: true,
@@ -65,17 +69,15 @@ export const doctorSchema = new Schema(
 
     specialty: {
       type: String,
-      required: true,
       trim: true,
     },
-    birthday:{
+    birthday: {
       type: Date,
       required: true,
-      min: 18
+      min: 18,
     },
     licenseNumber: {
       type: String,
-      required: true,
       unique: true,
       trim: true,
     },
@@ -97,13 +99,11 @@ export const doctorSchema = new Schema(
 
     sessionPrice: {
       type: Number,
-      required: true,
       min: 0,
     },
 
     availabilitySlots: {
       type: [Date],
-      required: true,
     },
 
     temporaryPassword: {
@@ -116,6 +116,7 @@ export const doctorSchema = new Schema(
   }
 );
 
-
-const patientModel = mongoose.models.Patient || model("Patient", patientSchema);
-export default patientModel;
+export const PatientModel =
+  mongoose.models.Patient || model("Patient", PatientSchema);
+export const DoctorModel =
+  mongoose.models.Doctor || model("Doctor", DoctorSchema);

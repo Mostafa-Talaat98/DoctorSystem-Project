@@ -1,6 +1,5 @@
 import connectDB from "./DB/connect.js";
 import authRouter from "./modules/auth/auth.routes.js";
-import { sendVerifyEmailOtp, verifyEmailOtp } from "./modules/auth/Otp/otp.service.js";
 
 const bootstrap = async (app, express) => {
   app.use(express.json());

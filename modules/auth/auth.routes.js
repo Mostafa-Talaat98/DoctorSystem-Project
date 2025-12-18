@@ -1,11 +1,11 @@
 import { Router } from "express";
+import { register, verifyPhoneOtp } from "./auth.controller.js";
+import validateRequest from "../../middleware/validateRequest.js";
+import { signUpSchema } from "./auth.schema.js";
 
 const authRouter = Router();
-// > auth/register
-// function ====> validate as middleleware
-// comapre betwwen schema and the data from body
-authRouter.post("/register",(req, res) => {});
 
+authRouter.post("/register", validateRequest(signUpSchema), register);
+authRouter.post("/verifyPhoneOtp", verifyPhoneOtp);
 
-
-export default authRouter
+export default authRouter;

@@ -13,7 +13,7 @@ const REGEX = {
  * @body {string} email - Must be a valid RFC 5322 email format.
  * @body {string} phoneNumber - Must be a valid Egyptian mobile number.
  * @body {string} password - Min 8 chars, must include 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
- * @body {number} age - Must be a number and at least 18 years old.
+ * @body {string} birthday - Date of birth. User must be at least 18 years old.
  */
 export const patientSignUpSchema = joi.object({
   fullName: joi.string().trim().pattern(REGEX.FULL_NAME).min(3).required().messages({
@@ -74,110 +74,59 @@ export const patientSignUpSchema = joi.object({
  * @body {string} email - Must be a valid RFC 5322 email format.
  * @body {string} phoneNumber - Must be a valid Egyptian mobile number.
  * @body {string} password - Min 8 chars, must include 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
- * @body {string} specialty - Doctor medical specialty.
- * @body {string} licenseNumber - Official medical license number.
- * @body {object} clinicLocation - Clinic geographic coordinates.
- * @body {number} clinicLocation.latitude - Latitude (-90 → 90).
- * @body {number} clinicLocation.longitude - Longitude (-180 → 180).
- * @body {number} sessionPrice - Consultation session price (> 0).
- * @body {Array<Date>} availabilitySlots - Array of future appointment slots.
  */
 export const doctorSignUpSchema = joi.object({
-  fullName: joi
-    .string()
-    .trim()
-    .pattern(REGEX.FULL_NAME)
-    .min(3)
-    .required()
-    .messages({
-      "string.min": "Full name must be at least 3 characters",
-      "string.pattern.base":
-        "Full name must contain at least first and last name, letters only",
-      "any.required": "Full name is required.",
-    }),
+  fullName: joi.string().trim().pattern(REGEX.FULL_NAME).min(3).required().messages({
+    'string.min': 'Full name must be at least 3 characters',
+    'string.pattern.base': 'Full name must contain at least first and last name, letters only',
+    'any.required': 'Full name is required.',
+  }),
 
   email: joi.string().trim().email().required().messages({
-    "string.email": "Email must be a valid email address.",
-    "any.required": "Email is required.",
+    'string.email': 'Email must be a valid email address.',
+    'any.required': 'Email is required.',
   }),
 
   phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
-    "string.pattern.base": "Invalid Egyptian phone number",
-    "any.required": "Phone number is required.",
+    'string.pattern.base': 'Invalid Egyptian phone number',
+    'any.required': 'Phone number is required.',
   }),
 
-  password: joi
-    .string()
-    .trim()
-    .min(8)
-    .pattern(REGEX.PASSWORD)
+  password: joi.string().trim().min(8).pattern(REGEX.PASSWORD).required().messages({
+    'string.min': 'Password must be at least 8 characters long.',
+    'string.pattern.base':
+      'Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.',
+    'any.required': 'Password is required.',
+  }),
+  birthday: joi
+    .date()
+    .less('now')
+    .custom((value, helpers) => {
+      const today = new Date();
+      const birthDate = new Date(value);
+
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--;
+      }
+
+      if (age < 18) {
+        return helpers.error('date.minAge');
+      }
+
+      return value;
+    })
     .required()
     .messages({
-      "string.min": "Password must be at least 8 characters long.",
-      "string.pattern.base":
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
-      "any.required": "Password is required.",
+      'date.base': 'Birthday must be a valid date',
+      'date.less': 'Birthday must be in the past',
+      'date.minAge': 'You must be at least 18 years old',
+      'any.required': 'Birthday is required',
     }),
 
-  specialty: joi
-    .string()
-    .trim()
-    .min(2)
-    .required()
-    .messages({
-      "string.min": "Specialty must be at least 2 characters long.",
-      "any.required": "Specialty is required.",
-    }),
 
-  licenseNumber: joi
-    .string()
-    .trim()
-    .min(5)
-    .required()
-    .messages({
-      "string.min": "License number must be at least 5 characters long.",
-      "any.required": "License number is required.",
-    }),
-
-  // clinicLocation: joi
-  //   .object({
-  //     latitude: joi
-  //       .number()
-  //       .min(-90)
-  //       .max(90)
-  //       .required()
-  //       .messages({
-  //         "number.min": "Latitude must be greater than or equal to -90.",
-  //         "number.max": "Latitude must be less than or equal to 90.",
-  //       }),
-
-  //     longitude: joi
-  //       .number()
-  //       .min(-180)
-  //       .max(180)
-  //       .required()
-  //       .messages({
-  //         "number.min": "Longitude must be greater than or equal to -180.",
-  //         "number.max": "Longitude must be less than or equal to 180.",
-  //       }),
-  //   })
-  //   .required()
-  //   .messages({
-  //     "any.required": "Clinic location is required.",
-  //   }),
-
-  sessionPrice: joi
-    .number()
-    .positive()
-    .required()
-    .messages({
-      "number.positive": "Session price must be greater than 0.",
-      "any.required": "Session price is required.",
-    }),
-
-  availabilitySlots: joi
-    .array()
-    .items(joi.date().greater("now"))
 });
 
 

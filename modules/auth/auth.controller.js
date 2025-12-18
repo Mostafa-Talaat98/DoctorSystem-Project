@@ -1,5 +1,8 @@
 import patientModel from "../../DB/models/auth.model.js";
 import bcrypt from "bcryptjs";
+import { sendVerifyEmailOtp } from "./Otp/otp.service.js";
+
+
 export const register = async (req, res, next) => {
   try {
     const { userName, email, password, phoneNumber, role } = req.body;

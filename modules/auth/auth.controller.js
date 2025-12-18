@@ -25,6 +25,6 @@ export const register = async (req, res, next) => {
       .status(201)
       .json({ message: "User registered successfully", userId: patient._id });
   } catch (error) {
-    next(new Error(error.message));
+    next(error);
   }
 };

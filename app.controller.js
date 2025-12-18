@@ -1,12 +1,12 @@
 import connectDB from "./DB/connect.js";
 import authRouter from "./modules/auth/auth.routes.js";
-import { sendVerifyEmailOtp, verifyEmailOtp } from "./modules/auth/Otp/otp.service.js";
 
 const bootstrap = async (app, express) => {
   app.use(express.json());
 
   await connectDB();
 
+  
   app.use("/auth", authRouter);
 
 
@@ -15,8 +15,8 @@ const bootstrap = async (app, express) => {
   });
 
   app.use((error, req, res, next) => {
-    const status = error.cause;
-    res.status(500).json({ message: error.message, stack: error.stack });
+    const status = error.cause || 500;
+    res.status(status).json({ message: error.message, details: error.details ,stack: error.stack });
   });
 };
 

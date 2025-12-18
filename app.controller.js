@@ -9,11 +9,6 @@ const bootstrap = async (app, express) => {
 
   app.use("/auth", authRouter);
 
-  app.post("/test", (req, res) => {
-    verifyEmailOtp({ email: "magicianmt@gmail.com",code:"120753" });
-
-    res.end()
-  });
 
   app.use((req, res) => {
     res.status(404).json({ message: "not found" });

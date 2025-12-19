@@ -130,7 +130,3 @@ export const globalErrorHandler = (error, req, res, next) => {
     error_stack: process.env.MOOD === 'development' ? error.stack : undefined,
   });
 };
-
-
-
-

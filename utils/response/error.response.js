@@ -88,71 +88,37 @@ export class NotFoundException extends ApplicationException {
   }
 }
 
-/**
- * @class InvalidTokenException
- * @extends ApplicationException
- *
- * @description
- * Represents an invalid or expired authentication token.
- *
- * @param {string} [message="The token is invalid or has expired"] - Error message.
- * @param {number} [statusCode=401] - HTTP status code.
- * @param {unknown} [cause] - Root cause of the error.
- */
+
 export class InvalidTokenException extends ApplicationException {
   constructor(message = 'The token is invalid or has expired', statusCode = 401, cause) {
     super(message, statusCode, cause);
   }
 }
 
-/**
- * @class UnAuthorizedException
- * @extends ApplicationException
- *
- * @description
- * Represents a 401 Unauthorized error.
- * Used when authentication is required or has failed.
- *
- * @param {string} [message="You are not authorized. Please login to continue."] - Error message.
- * @param {number} [statusCode=401] - HTTP status code.
- * @param {unknown} [cause] - Root cause of the error.
- */
 export class UnAuthorizedException extends ApplicationException {
   constructor(message = 'You are not authorized. Please login to continue.', statusCode = 401, cause) {
     super(message, statusCode, cause);
   }
 }
 
-/**
- * @class ForbiddenException
- * @extends ApplicationException
- *
- * @description
- * Represents a 403 Forbidden error.
- * Used when the authenticated user lacks required permissions.
- *
- * @param {string} [message="You don't have permission to perform this action"] - Error message.
- * @param {number} [statusCode=403] - HTTP status code.
- * @param {unknown} [cause] - Root cause of the error.
- */
+
 export class ForbiddenException extends ApplicationException {
   constructor(message = "You don't have permission to perform this action", statusCode = 403, cause) {
     super(message, statusCode, cause);
   }
 }
 
-/**
- * @function globalErrorHandler
- *
- * @description
- * Express global error-handling middleware.
- * Formats and sends all application errors in a unified response structure.
- *
- * @param {Error} error - Thrown application error.
- * @param {Request} req - Express request object.
- * @param {Response} res - Express response object.
- * @param {NextFunction} next - Express next middleware function.
- */
+export class TooManyRequestsException extends ApplicationException {
+  constructor(
+    message = "Too many requests. Please try again later.",
+    cause
+  ) {
+    super(message, 429, cause);
+  }
+}
+
+
+
 export const globalErrorHandler = (error, req, res, next) => {
   console.error(error);
 

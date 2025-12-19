@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { UnAuthorizedException } from '../../utils/response/error.response.js';
 import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
+import { verifyToken } from '../../utils/security/jwtToken.js';
 
 /**
  * @description Middleware to validate a JWT token, fetch the user, and attach it to req.user
@@ -16,12 +17,8 @@ export const authenticateUser = (models = [DoctorModel, PatientModel], tokenHead
 
     const token = authHeader.split(' ')[1];
 
-    let payload;
-    try {
-      payload = jwt.verify(token, process.env.JWT_SECRET);
-    } catch (err) {
-      throw new UnAuthorizedException('Invalid or expired token');
-    }
+    const payload = verifyToken(token);
+    if (payload) throw new UnAuthorizedException('Invalid or expired token');
 
     const { userId } = payload;
     if (!userId) throw new UnAuthorizedException('Invalid token payload');

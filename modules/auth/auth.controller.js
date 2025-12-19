@@ -1,11 +1,10 @@
 import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
-import { UnAuthorizedException } from '../../utils/response/error.response.js';
+import { NotFoundException, UnAuthorizedException } from '../../utils/response/error.response.js';
 import { successResponse } from '../../utils/response/success.response.js';
 import { compareHash } from '../../utils/security/hash.js';
-import jwt from 'jsonwebtoken';
 import { verifyEmailOtp } from './Otp/otp.service.js';
-import { OAuth2Client } from 'google-auth-library';
-import { verifyGmailAccount } from './auth.service.js';
+import { verifyGmailAccount } from './googleAuthentication/googleAuthentication.service.js';
+import { createToken } from '../../utils/security/jwtToken.js';
 
 /**
  * @description Middleware/controller to verify a user's account using an OTP code.
@@ -57,13 +56,16 @@ export const login = async (req, res) => {
   const user = (await DoctorModel.findOne({ email })) || (await PatientModel.findOne({ email }));
 
   if (!user) throw new UnAuthorizedException('Invalid credentials');
-
+  if (user.provider === 'Google')
+    throw new UnAuthorizedException('Not Registered Account Or Registered With Another Provider');
   const isMatch = await compareHash(password, user.password);
   if (!isMatch) throw new UnAuthorizedException('Invalid credentials');
 
   const payload = { userId: user._id, email: user.email };
-  const token = jwt.sign(payload, process.env.JWT_SECRET, { expiresIn: '1d' });
-  
+  const token = createToken(payload);
+
+  if (!user.isVerified) throw new UnAuthorizedException('Account not verified. Please verify your email to proceed.');
+
   return successResponse({
     res,
     statusCode: 200,
@@ -72,7 +74,6 @@ export const login = async (req, res) => {
       user: {
         id: user._id,
         fullName: user.fullName,
-        email: user.email,
       },
       token,
     },
@@ -80,64 +81,36 @@ export const login = async (req, res) => {
 };
 
 export const loginWithGmail = async (req, res) => {
-  const { idToken } = req.body.validData;
+  const { id_token } = req.body;
 
-  const { email } = await verifyGmailAccount(idToken);
+  const { email } = await verifyGmailAccount(id_token);
 
-  const user = await this.userModel.findOne({
-    filter: {
+  const [patient, doctor] = await Promise.all([
+    PatientModel.findOne({
       email,
-    },
-  });
+    }),
+
+    DoctorModel.findOne({
+      email,
+    }),
+  ]);
+
+  const user = doctor || patient || null;
 
   if (!user) throw new NotFoundException('Not Registered Account Or Registered With Another Provider');
-
-  const credentials = await this.tokenService.createLoginCredentials(user);
+  const payload = { userId: user._id, email: user.email };
+  const token = createToken(payload);
 
   return successResponse({
     res,
-    info: 'login Success',
-    data: { credentials },
-  });
-};
-
-export const signupWithGmail = async (req, res) => {
-  const { idToken, userName } = req.body.validData;
-
-  const { email } = await verifyGmailAccount(idToken);
-
-  const user = await this.userModel.findOne({
-    filter: {
-      email,
-    },
-  });
-
-  if (user) {
-    if (user.provider === ProviderEnum.google) return await this.loginWithGmail(req, res);
-
-    throw new ConflictException('Invalid Provider', {
-      userProvider: user.provider,
-    });
-  }
-
-  const newUser = await this.userModel.createUser({
-    data: [
-      {
-        userName,
-        email: email,
-        confirmedAt: new Date(),
-        provider: ProviderEnum.google,
+    statusCode: 200,
+    message: 'Login successful',
+    data: {
+      user: {
+        id: user._id,
+        fullName: user.fullName,
       },
-    ],
-  });
-
-  if (!newUser) throw new BadRequestException('Fail To Signup');
-
-  const credentials = await this.tokenService.createLoginCredentials(newUser);
-
-  return successResponse({
-    res,
-    info: 'Signup Success',
-    data: { credentials },
+      token,
+    },
   });
 };

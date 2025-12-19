@@ -1,4 +1,4 @@
-import mongoose, { Schema, model } from "mongoose";
+import mongoose, { Schema, model } from 'mongoose';
 
 const PatientSchema = new Schema(
   {
@@ -6,18 +6,30 @@ const PatientSchema = new Schema(
       type: String,
       required: true,
     },
+    image: {
+      type: {
+        url: String,
+        public_id: String,
+      },
+      _id: false,
+    },
     email: {
       type: String,
       required: true,
       unique: true,
     },
+    provider: {
+      type: String,
+      enum: ['System', 'Google'],
+      required: true,
+    },
     password: {
       type: String,
-      required: true,
+      select: false,
     },
     phoneNumber: {
       type: String,
-      required: true,
+      unique: true,
     },
     isVerified: {
       type: Boolean,
@@ -25,7 +37,6 @@ const PatientSchema = new Schema(
     },
     birthday: {
       type: Date,
-      required: true,
       min: 18,
     },
   },
@@ -41,10 +52,15 @@ const DoctorSchema = new Schema(
       required: true,
       trim: true,
     },
-
+    image: {
+      type: {
+        url: String,
+        public_id: String,
+      },
+      _id: false,
+    },
     phoneNumber: {
       type: String,
-      required: true,
       unique: true,
     },
 
@@ -60,10 +76,14 @@ const DoctorSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    provider: {
+      type: String,
+      enum: ['System', 'Google'],
+      required: true,
+    },
 
     password: {
       type: String,
-      required: true,
       select: false,
     },
 
@@ -73,7 +93,6 @@ const DoctorSchema = new Schema(
     },
     birthday: {
       type: Date,
-      required: true,
       min: 18,
     },
     licenseNumber: {
@@ -82,20 +101,18 @@ const DoctorSchema = new Schema(
       trim: true,
     },
 
-    // clinicLocation: {
-    //   latitude: {
-    //     type: Number,
-    //     required: true,
-    //     min: -90,
-    //     max: 90,
-    //   },
-    //   longitude: {
-    //     type: Number,
-    //     required: true,
-    //     min: -180,
-    //     max: 180,
-    //   },
-    // },
+    clinicLocation: {
+      latitude: {
+        type: Number,
+        min: -90,
+        max: 90,
+      },
+      longitude: {
+        type: Number,
+        min: -180,
+        max: 180,
+      },
+    },
 
     sessionPrice: {
       type: Number,
@@ -116,7 +133,5 @@ const DoctorSchema = new Schema(
   }
 );
 
-export const PatientModel =
-  mongoose.models.Patient || model("Patient", PatientSchema);
-export const DoctorModel =
-  mongoose.models.Doctor || model("Doctor", DoctorSchema);
+export const PatientModel = mongoose.models.Patient || model('Patient', PatientSchema);
+export const DoctorModel = mongoose.models.Doctor || model('Doctor', DoctorSchema);

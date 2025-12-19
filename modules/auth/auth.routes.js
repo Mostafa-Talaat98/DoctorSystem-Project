@@ -6,38 +6,43 @@ import {
   reSendOTPSchema,
   signInWithEmailSchema,
 } from './auth.schema.js';
-import { asyncHandler } from '../../utils/catchAsync.js';
-import { registerPatient } from './patient/patient.controller.js';
-import { registerDoctor } from './doctor/doctor.controller.js';
+import { patientRegisterWithGmail, registerPatient } from './patient/patient.controller.js';
+import { doctorRegisterWithGmail, registerDoctor } from './doctor/doctor.controller.js';
 import validateRequest from '../middleware/validateRequest.middleware.js';
 import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
 import { reSendEmailOtp } from './Otp/otp.service.js';
-import { login, signupWithGmail, verifyAccount } from './auth.controller.js';
+import { login, loginWithGmail, verifyAccount } from './auth.controller.js';
 import { BadRequestException, NotFoundException } from '../../utils/response/error.response.js';
 
 const authRouter = Router();
 
-/*                      Doctor                       */
+// ===========================  Doctor ===========================
 
-authRouter.post('/doctor/register', validateRequest(doctorSignUpSchema), asyncHandler(registerDoctor));
+authRouter.post('/doctor/register', validateRequest(doctorSignUpSchema), registerDoctor);
 
-/*                      Patient                       */
+// ===========================  Patient ===========================
 
-authRouter.post('/patient/register', validateRequest(patientSignUpSchema), asyncHandler(registerPatient));
+authRouter.post('/patient/register', validateRequest(patientSignUpSchema), registerPatient);
 
-/*                      Shared                       */
+// ===========================  Shared ===========================
 
 authRouter.post('/re-send-otp', validateRequest(reSendOTPSchema), reSendEmailOtp);
 
 authRouter.post('/login', validateRequest(signInWithEmailSchema), login);
 
+authRouter.post('/verify-account', validateRequest(otpValidationSchema));
+
+authRouter.post('/patient/google/register', patientRegisterWithGmail);
+
+authRouter.post('/doctor/google/register', doctorRegisterWithGmail);
+
+authRouter.post('/google/login', loginWithGmail);
+
 authRouter.post(
   '/verify-account',
   validateRequest(otpValidationSchema),
 
-  authRouter.post('/google/register', signupWithGmail),
-
-  asyncHandler(async (req, res, next) => {
+  async (req, res, next) => {
     const { email } = req.body;
 
     const [patient, doctor] = await Promise.all([PatientModel.findOne({ email }), DoctorModel.findOne({ email })]);
@@ -50,7 +55,7 @@ authRouter.post(
     if (doctor) return verifyAccount(DoctorModel)(req, res, next);
 
     if (patient) return verifyAccount(PatientModel)(req, res, next);
-  })
+  }
 );
 
 export default authRouter;

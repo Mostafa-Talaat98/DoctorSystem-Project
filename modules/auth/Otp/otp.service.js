@@ -130,7 +130,9 @@ export async function reSendEmailOtp(req, res) {
     otp:plainOtp,
   });
 
-  res.end("done");
+  res.json({
+    message:"OTP sent to your email successfully"
+  });
 }
 
 // Phone Number Verification

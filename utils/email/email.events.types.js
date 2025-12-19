@@ -1,4 +1,5 @@
 export const EmailEventType = Object.freeze({
   VERIFY_EMAIL: "VERIFY_EMAIL",
+  FORGET_PASSWORD: "FORGET_PASSWORD",
   RESET_PASSWORD: "RESET_PASSWORD",
 });

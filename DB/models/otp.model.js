@@ -1,7 +1,7 @@
 import mongoose, { Schema, model } from "mongoose";
 import { OtpType } from "../../modules/auth/Otp/otp.types.js";
 
-const otpSchema = new Schema(
+const OtpSchema = new Schema(
   {
     phoneNumber: {
       type: String,
@@ -33,11 +33,23 @@ const otpSchema = new Schema(
       type: Boolean,
       default: false,
     },
+    sendTime:{
+      type:Date,
+      default: () =>  Date.now() ,
+    },
+    resendCount: {
+      type: Number,
+      default: 0,
+    },
+    blockExpiresAt: {
+      type: Date,
+      required: false,
+    },
   },
   {
     timestamps: true,
   }
 );
 
-const otpModel = mongoose.models.Otp || model("Otp", otpSchema);
-export default otpModel;
+const OtpModel = mongoose.models.Otp || model("Otp", OtpSchema);
+export default OtpModel;

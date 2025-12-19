@@ -3,6 +3,7 @@ import {
   patientSignUpSchema,
   doctorSignUpSchema,
   otpValidationSchema,
+  reSendOTPSchema,
 } from "./auth.schema.js";
 import { asyncHandler } from "../../utils/catchAsync.js";
 import {
@@ -16,6 +17,7 @@ import {
 import validateRequest from "../middleware/validateRequest.middleware.js";
 import { DoctorModel, PatientModel } from "../../DB/models/auth.model.js";
 import AppError from "../../utils/AppError.js";
+import { reSendEmailOtp } from "./Otp/otp.service.js";
 
 const authRouter = Router();
 
@@ -38,11 +40,17 @@ authRouter.post(
 /*                      Shared                       */
 
 authRouter.post(
+  "/re-send-otp",
+  validateRequest(reSendOTPSchema),
+  reSendEmailOtp
+);
+
+authRouter.post(
   "/verify-account",
   validateRequest(otpValidationSchema),
 
   asyncHandler(async (req, res, next) => {
-    const { email, otpCode } = req.body;
+    const { email } = req.body;
 
     const [patient, doctor] = await Promise.all([
       PatientModel.findOne({ email }),
@@ -53,8 +61,8 @@ authRouter.post(
       throw new AppError("Verification Error", "Account not found", 404);
     }
 
-    if (patient.isVerified === true || doctor.isVerified === true) {
-      throw new AppError("Verification Error", "Account already verified", 404);
+    if ((patient && patient.isVerified) || (doctor && doctor.isVerified)) {
+      throw new AppError("Verification Error", "Account already verified", 400);
     }
 
     if (doctor) {

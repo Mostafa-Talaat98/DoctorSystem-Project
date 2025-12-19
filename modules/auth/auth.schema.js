@@ -27,17 +27,17 @@ export const patientSignUpSchema = joi.object({
       "string.min": "Full name must be at least 3 characters",
       "string.pattern.base":
         "Full name must contain at least first and last name, letters only",
-      "any.required": "Full name is required.",
+      "any.required": "'fullName' is required.",
     }),
 
   email: joi.string().trim().email().required().messages({
     "string.email": "Email must be a valid email address.",
-    "any.required": "Email is required.",
+    "any.required": "'email' is required.",
   }),
 
   phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
     "string.pattern.base": "Invalid Egyptian phone number",
-    "any.required": "Phone number is required.",
+    "any.required": "'phoneNumber' is required.",
   }),
 
   password: joi
@@ -50,7 +50,7 @@ export const patientSignUpSchema = joi.object({
       "string.min": "Password must be at least 8 characters long.",
       "string.pattern.base":
         "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
-      "any.required": "Password is required.",
+      "any.required": "'password' is required.",
     }),
 
   birthday: joi
@@ -81,7 +81,7 @@ export const patientSignUpSchema = joi.object({
       "date.base": "Birthday must be a valid date",
       "date.less": "Birthday must be in the past",
       "date.minAge": "You must be at least 18 years old",
-      "any.required": "Birthday is required",
+      "any.required": "'birthday' is required",
     }),
 });
 
@@ -103,17 +103,17 @@ export const doctorSignUpSchema = joi.object({
       "string.min": "Full name must be at least 3 characters",
       "string.pattern.base":
         "Full name must contain at least first and last name, letters only",
-      "any.required": "Full name is required.",
+      "any.required": "'fullName' is required.",
     }),
 
   email: joi.string().trim().email().required().messages({
     "string.email": "Email must be a valid email address.",
-    "any.required": "Email is required.",
+    "any.required": "'email' is required.",
   }),
 
   phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
     "string.pattern.base": "Invalid Egyptian phone number",
-    "any.required": "Phone number is required.",
+    "any.required": "'phoneNumber' is required.",
   }),
 
   password: joi
@@ -126,7 +126,7 @@ export const doctorSignUpSchema = joi.object({
       "string.min": "Password must be at least 8 characters long.",
       "string.pattern.base":
         "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
-      "any.required": "Password is required.",
+      "any.required": "'password' is required.",
     }),
   birthday: joi
     .date()
@@ -156,7 +156,7 @@ export const doctorSignUpSchema = joi.object({
       "date.base": "Birthday must be a valid date",
       "date.less": "Birthday must be in the past",
       "date.minAge": "You must be at least 18 years old",
-      "any.required": "Birthday is required",
+      "any.required": "'birthday' is required",
     }),
 });
 
@@ -168,19 +168,16 @@ export const doctorSignUpSchema = joi.object({
 export const signInWithEmailSchema = joi.object({
   email: joi.string().email().required().messages({
     "string.email": "Email must be a valid email address.",
-    "any.required": "Email is required.",
+    "any.required": "'email' is required.",
   }),
   password: joi
     .string()
     .trim()
     .min(8)
-    .pattern(REGEX.PASSWORD)
     .required()
     .messages({
       "string.min": "Password must be at least 8 characters long.",
-      "string.pattern.base":
-        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
-      "any.required": "Password is required.",
+      "any.required": "'password' is required.",
     }),
 });
 
@@ -206,11 +203,12 @@ export const otpValidationSchema = joi
     otpCode: joi.string().length(4).pattern(REGEX.OTP).required().messages({
       "string.length": "OTP must be 4 digits long.",
       "string.pattern.base": "OTP must only contain digits.",
-      "any.required": "OTP code is required.",
+      "any.required": "'otpCode' is required.",
     }),
 
-    email: joi.string().email().messages({
+    email: joi.string().required().email().messages({
       "string.email": "Email must be a valid email address.",
+      "any.required": "'email' is required.",
     }),
 
     phoneNumber: joi.string().pattern(REGEX.PHONE).messages({
@@ -219,30 +217,29 @@ export const otpValidationSchema = joi
   })
   .xor("email", "phoneNumber")
   .messages({
-    "object.xor":
-      "Please provide either an email or a phone number to verify the OTP.",
+    "object.xor": "Please provide either an email or a phone number to verify the OTP.",
   });
 
 
+/**
+ * @description Validation for Resending OTP
+ * @logic Requires a valid email and OTP type to resend the OTP.
+ * @body {string} email - Email address to resend the OTP to.
+ * @body {string} type - OTP type (e.g. EMAIL, SMS).
+ */
 
-
-
-
-
-  // تم اضافة هذا الفاليديشن بواسطة العبد لله - زين -  عشان بشمهندس حسام نايم 
-  // وربنا ما يحوجني لحد 
-  
 export const reSendOTPSchema = joi.object({
   email: joi.string().email().messages({
     "string.email": "Email must be a valid email address.",
+    "any.required": "'email' is required."
   }),
 
-  type: joi.string()
+  type: joi
+    .string()
     .valid(...Object.values(OtpType))
     .required()
     .messages({
       "any.only": `Type must be one of ${Object.values(OtpType).join(", ")}`,
-      "string.empty": "Type is required",
+      "string.empty": "'type' is required",
     }),
-
 });

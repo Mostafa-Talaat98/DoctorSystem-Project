@@ -28,7 +28,6 @@ export const registerPatient = async (req, res, next) => {
     phoneNumber: await encodeString(phoneNumber),
     birthday,
   });
-
   const data = (({ password, createdAt, updatedAt, __v, ...rest }) => rest)(
     newPatient.toObject()
   );
@@ -41,28 +40,5 @@ export const registerPatient = async (req, res, next) => {
     message: "User registered successfully",
     info: "Almost there! Please verify your email to complete your registration.",
     data,
-  });
-};
-
-export const verifyPatientAccount = async (req, res, next) => {
-
-
-  const { email, otpCode } = req.body;
-
-  await verifyEmailOtp({ email, code: otpCode });
-
-  const patient = await PatientModel.findOneAndUpdate(
-    { email },
-    { isVerified: true },
-    { new: true }
-  ).select("-password -__v -createdAt -updatedAt");
-
-  if (!patient) {
-    throw new AppError("Verification Error", "Patient not found", 404);
-  }
-
-  return res.status(200).json({
-    message: "Email verified successfully",
-    data: patient,
   });
 };

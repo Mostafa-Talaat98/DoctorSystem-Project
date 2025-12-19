@@ -90,7 +90,7 @@ export async function reSendEmailOtp(req, res) {
 
   if (!otpRecord) {
     // Error Response محتاجين نظبط ال
-    throw new AppError("The request is no longer valid.", 404);
+    throw new AppError("The request is no longer valid." ,404);
   }
 
   // 1 : Check Block

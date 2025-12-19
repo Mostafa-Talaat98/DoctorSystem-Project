@@ -10,6 +10,7 @@ const bootstrap = async (app, express) => {
 
   app.use("/auth", authRouter);
 
+  
 
   app.use((req, res) => {
     res.status(404).json({ message: "Not Found" });

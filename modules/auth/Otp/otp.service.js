@@ -8,14 +8,16 @@ import { EmailEventType } from "../../../utils/email/email.events.types.js";
 import pkg from "twilio";
 
 import dotenv from "dotenv";
-import AppError from "../../../utils/AppError.js";
+import { ApplicationException, BadRequestException, ConflictException, NotFoundException, TooManyRequestsException } from "../../../utils/response/error.response.js";
+import { successResponse } from "../../../utils/response/success.response.js";
+
 dotenv.config();
 
 // Email Verification
 
 export async function sendVerifyEmailOtp({ email }) {
   if (!email) {
-    throw new AppError("Email Is Must Be Provided");
+    throw new ConflictException("Email Is Must Be Provided");
   }
 
   const otp = generate({
@@ -30,7 +32,7 @@ export async function sendVerifyEmailOtp({ email }) {
   });
 
   if (!newOTP) {
-    throw new AppError("Fail To Create New OTP");
+    throw new ApplicationException("Fail To Create New OTP");
   }
 
   emailEvent.emit(EmailEventType.VERIFY_EMAIL, {
@@ -43,11 +45,11 @@ export async function sendVerifyEmailOtp({ email }) {
 
 export async function verifyEmailOtp({ email, code }) {
   if (!email) {
-    throw new AppError("Email must be provided");
+    throw new BadRequestException("Email must be provided");
   }
 
   if (!code) {
-    throw new AppError("OTP code must be provided");
+    throw new BadRequestException("OTP code must be provided");
   }
 
   const otpEntry = await OtpModel.findOne({
@@ -56,7 +58,7 @@ export async function verifyEmailOtp({ email, code }) {
   }).sort({ createdAt: -1 });
 
   if (!otpEntry) {
-    throw new AppError("No OTP found for this email.");
+    throw new BadRequestException("No OTP found for this email.");
   }
 
   const OTP_EXPIRATION_MS = 5 * 60 * 1000;
@@ -65,12 +67,12 @@ export async function verifyEmailOtp({ email, code }) {
 
   if (isExpired) {
     await otpEntry.deleteOne();
-    throw new AppError("OTP expired. Please request a new one");
+    throw new BadRequestException("OTP expired. Please request a new one");
   }
 
   const isValid = await compareHash(code, otpEntry.code);
   if (!isValid) {
-    throw new AppError("Invalid OTP code.");
+    throw new BadRequestException("Invalid OTP code.");
   }
 
   otpEntry.used = true;
@@ -89,18 +91,17 @@ export async function reSendEmailOtp(req, res) {
   });
 
   if (!otpRecord) {
-    // Error Response محتاجين نظبط ال
-    throw new AppError("The request is no longer valid." ,404);
+    throw new NotFoundException("The request is no longer valid.");
   }
 
   // 1 : Check Block
   if (otpRecord.blockExpiresAt > Date.now()) {
-    throw new AppError("Too many requests. Try again after 15 minutes.");
+    throw new TooManyRequestsException("Too many requests. Try again after 15 minutes.");
   }
 
   // 2 : Check Resend Interval
   if (Date.now() - otpRecord.sendTime < 1 * 60 * 1000) {
-    throw new AppError(
+    throw new BadRequestException(
       "OTP was recently sent. Please wait before requesting a new one."
     );
   }
@@ -110,7 +111,7 @@ export async function reSendEmailOtp(req, res) {
     otpRecord.blockExpiresAt = Date.now() + 15 * 60 * 1000;
     otpRecord.resendCount = 0;
     await otpRecord.save();
-    throw new AppError("You are temporarily blocked from resending OTP.", 429);
+    throw new BadRequestException("You are temporarily blocked from resending OTP.");
   }
 
   otpRecord.resendCount += 1;
@@ -130,9 +131,12 @@ export async function reSendEmailOtp(req, res) {
     otp:plainOtp,
   });
 
-  res.json({
+  
+  return successResponse({
+    res,
     message:"OTP sent to your email successfully"
-  });
+  })
+  
 }
 
 // Phone Number Verification
@@ -148,7 +152,7 @@ export async function sendVerifyPhoneOtp({ phoneNumber }) {
   const normalizedPhone = normalizePhone(phoneNumber);
 
   if (!normalizedPhone || !/^\+20\d{10}$/.test(normalizedPhone)) {
-    throw new Error("Phone number must be in +20XXXXXXXXX format");
+    throw new BadRequestException("Phone number must be in +20XXXXXXXXX format");
   }
 
   const otp = generate({
@@ -163,7 +167,7 @@ export async function sendVerifyPhoneOtp({ phoneNumber }) {
   });
 
   if (!newOTP) {
-    throw new Error("Fail To Create New OTP");
+    throw new BadRequestException("Fail To Create New OTP");
   }
 
   try {
@@ -185,7 +189,7 @@ export async function verifyPhoneOtp({ phoneNumber, code }) {
   const normalizedPhone = normalizePhone(phoneNumber);
 
   if (!normalizedPhone || !/^\+20\d{10}$/.test(normalizedPhone)) {
-    throw new Error("Phone number must be in +20XXXXXXXXX format");
+    throw new BadRequestException("Phone number must be in +20XXXXXXXXX format");
   }
 
   const otpEntry = await OtpModel.findOne({
@@ -194,7 +198,7 @@ export async function verifyPhoneOtp({ phoneNumber, code }) {
   }).sort({ createdAt: -1 });
 
   if (!otpEntry) {
-    throw new Error("No OTP found for this phone number.");
+    throw new BadRequestException("No OTP found for this phone number.");
   }
 
   const OTP_EXPIRATION_MS = 5 * 60 * 1000;
@@ -208,13 +212,12 @@ export async function verifyPhoneOtp({ phoneNumber, code }) {
 
   const isValid = await compareHash(code, otpEntry.code);
   if (!isValid) {
-    throw new Error("Invalid OTP code.");
+    throw new BadRequestException("Invalid OTP code.");
   }
 
   otpEntry.used = true;
   otpEntry.save();
 
-  console.log("Done");
 
   return true;
 }

@@ -2,6 +2,7 @@ import bcrypt from "bcrypt";
 import { sendVerifyEmailOtp } from "../Otp/otp.service.js";
 import { DoctorModel, PatientModel } from "../../../DB/models/auth.model.js";
 import { ConflictException } from "../../../utils/response/error.response.js";
+import { successResponse } from "../../../utils/response/success.response.js";
 
 export const registerDoctor = async (req, res) => {
   const { fullName, email, password, phoneNumber, birthday } = req.body;
@@ -17,7 +18,7 @@ export const registerDoctor = async (req, res) => {
   ]);
 
   if (patient || doctor) {
-    throw new ConflictException('Fail To signup', 'Email already exists');
+    throw new ConflictException("Email already exists");
   }
 
   const hashedPassword = await bcrypt.hash(password, 10);
@@ -36,9 +37,10 @@ export const registerDoctor = async (req, res) => {
 
   await sendVerifyEmailOtp({ email });
 
-  return res.status(201).json({
-    message: "User registered successfully",
+  return successResponse({
+    res,
+    statusCode:201,
+    message: "registered successfully",
     info: "Almost there! Please verify your email to complete your registration.",
-    data,
   });
 };

@@ -58,6 +58,8 @@ export const loginWithEmail = async (req, res) => {
 
   if (!user) throw new UnAuthorizedException('Invalid credentials');
 
+
+
   const isMatch = await compareHash(password, user.password);
   if (!isMatch) throw new UnAuthorizedException('Invalid credentials');
 
@@ -72,7 +74,6 @@ export const loginWithEmail = async (req, res) => {
       user: {
         id: user._id,
         fullName: user.fullName,
-        email: user.email,
       },
       token,
     },

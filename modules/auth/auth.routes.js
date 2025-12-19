@@ -20,9 +20,15 @@ const authRouter = Router();
 
 authRouter.post('/doctor/register', validateRequest(doctorSignUpSchema), registerDoctor);
 
+authRouter.post('/doctor/google/register', doctorRegisterWithGmail);
+
+
 // ===========================  Patient ===========================
 
 authRouter.post('/patient/register', validateRequest(patientSignUpSchema), registerPatient);
+
+authRouter.post('/patient/google/register', patientRegisterWithGmail);
+
 
 // ===========================  Shared ===========================
 
@@ -31,10 +37,6 @@ authRouter.post('/re-send-otp', validateRequest(reSendOTPSchema), reSendEmailOtp
 authRouter.post('/login', validateRequest(signInWithEmailSchema), login);
 
 authRouter.post('/verify-account', validateRequest(otpValidationSchema));
-
-authRouter.post('/patient/google/register', patientRegisterWithGmail);
-
-authRouter.post('/doctor/google/register', doctorRegisterWithGmail);
 
 authRouter.post('/google/login', loginWithGmail);
 

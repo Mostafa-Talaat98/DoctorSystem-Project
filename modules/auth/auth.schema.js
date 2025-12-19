@@ -1,46 +1,248 @@
-import joi from "joi"
+import joi from "joi";
+import { OtpType } from "./Otp/otp.types.js";
 
-export const registerSchema = joi.object({
-  email: joi.string().email().required().messages({
-    'string.email': 'Email must be a valid email address.',
-    'any.required': 'Email is required.',
+const REGEX = {
+  FULL_NAME: /^[A-Za-z]+(?:\s[A-Za-z]+)+$/,
+  PHONE: /^(\+20|0)1[0125][0-9]{8}$/,
+  PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])/,
+  OTP: /^[0-9]{4}$/,
+};
+
+/**
+ * @description Validation for Patient Registration
+ * @body {string} fullName - Min 3 chars, requires at least two words (First & Last).
+ * @body {string} email - Must be a valid RFC 5322 email format.
+ * @body {string} phoneNumber - Must be a valid Egyptian mobile number.
+ * @body {string} password - Min 8 chars, must include 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
+ * @body {string} birthday - Date of birth. User must be at least 18 years old.
+ */
+export const patientSignUpSchema = joi.object({
+  fullName: joi
+    .string()
+    .trim()
+    .pattern(REGEX.FULL_NAME)
+    .min(3)
+    .required()
+    .messages({
+      "string.min": "Full name must be at least 3 characters",
+      "string.pattern.base":
+        "Full name must contain at least first and last name, letters only",
+      "any.required": "Full name is required.",
+    }),
+
+  email: joi.string().trim().email().required().messages({
+    "string.email": "Email must be a valid email address.",
+    "any.required": "Email is required.",
+  }),
+
+  phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
+    "string.pattern.base": "Invalid Egyptian phone number",
+    "any.required": "Phone number is required.",
   }),
 
   password: joi
     .string()
+    .trim()
+    .min(8)
+    .pattern(REGEX.PASSWORD)
     .required()
-    .pattern(new RegExp('^(?=.*[a-z])(?=.*[A-Z])(?=.*[0-9])(?=.*[!@#$%^&*])')) // At least one uppercase, one lowercase, one number, and one symbol - [ NOT REQUIRED IN THE DOCUMENTATION ]
-    .min(8) // [ NOT REQUIRED IN THE DOCUMENTATION ]
     .messages({
-      'string.min': 'Password must be at least 8 characters long.',
-      'string.pattern.base':
-        'Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.',
-      'any.required': 'Password is required.',
+      "string.min": "Password must be at least 8 characters long.",
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+      "any.required": "Password is required.",
     }),
 
-  confirmPassword: joi.string().valid(joi.ref('password')).required().messages({
-    'any.only': 'Confirmation password does not match the password.',
-    'any.required': 'Confirmation password is required.',
+  birthday: joi
+    .date()
+    .less("now")
+    .custom((value, helpers) => {
+      const today = new Date();
+      const birthDate = new Date(value);
+
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+
+      if (age < 18) {
+        return helpers.error("date.minAge");
+      }
+
+      return value;
+    })
+    .required()
+    .messages({
+      "date.base": "Birthday must be a valid date",
+      "date.less": "Birthday must be in the past",
+      "date.minAge": "You must be at least 18 years old",
+      "any.required": "Birthday is required",
+    }),
+});
+
+/**
+ * @description Validation for Doctor Registration
+ * @body {string} fullName - Min 3 chars, requires at least two words (First & Last).
+ * @body {string} email - Must be a valid RFC 5322 email format.
+ * @body {string} phoneNumber - Must be a valid Egyptian mobile number.
+ * @body {string} password - Min 8 chars, must include 1 uppercase, 1 lowercase, 1 digit, and 1 special character.
+ */
+export const doctorSignUpSchema = joi.object({
+  fullName: joi
+    .string()
+    .trim()
+    .pattern(REGEX.FULL_NAME)
+    .min(3)
+    .required()
+    .messages({
+      "string.min": "Full name must be at least 3 characters",
+      "string.pattern.base":
+        "Full name must contain at least first and last name, letters only",
+      "any.required": "Full name is required.",
+    }),
+
+  email: joi.string().trim().email().required().messages({
+    "string.email": "Email must be a valid email address.",
+    "any.required": "Email is required.",
+  }),
+
+  phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
+    "string.pattern.base": "Invalid Egyptian phone number",
+    "any.required": "Phone number is required.",
+  }),
+
+  password: joi
+    .string()
+    .trim()
+    .min(8)
+    .pattern(REGEX.PASSWORD)
+    .required()
+    .messages({
+      "string.min": "Password must be at least 8 characters long.",
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+      "any.required": "Password is required.",
+    }),
+  birthday: joi
+    .date()
+    .less("now")
+    .custom((value, helpers) => {
+      const today = new Date();
+      const birthDate = new Date(value);
+
+      let age = today.getFullYear() - birthDate.getFullYear();
+      const monthDiff = today.getMonth() - birthDate.getMonth();
+
+      if (
+        monthDiff < 0 ||
+        (monthDiff === 0 && today.getDate() < birthDate.getDate())
+      ) {
+        age--;
+      }
+
+      if (age < 18) {
+        return helpers.error("date.minAge");
+      }
+
+      return value;
+    })
+    .required()
+    .messages({
+      "date.base": "Birthday must be a valid date",
+      "date.less": "Birthday must be in the past",
+      "date.minAge": "You must be at least 18 years old",
+      "any.required": "Birthday is required",
+    }),
+});
+
+/**
+ * @description Validation for Standard Email/Password Sign-In
+ * @body {string} email - Valid email address of the registered user.
+ * @body {string} password - Raw password string (checked against hash in DB).
+ */
+export const signInWithEmailSchema = joi.object({
+  email: joi.string().email().required().messages({
+    "string.email": "Email must be a valid email address.",
+    "any.required": "Email is required.",
+  }),
+  password: joi
+    .string()
+    .trim()
+    .min(8)
+    .pattern(REGEX.PASSWORD)
+    .required()
+    .messages({
+      "string.min": "Password must be at least 8 characters long.",
+      "string.pattern.base":
+        "Password must contain at least one uppercase letter, one lowercase letter, one number, and one symbol.",
+      "any.required": "Password is required.",
+    }),
+});
+
+/**
+ * @description Validation for Phone Number Sign-In (Initial Step)
+ * @body {string} phoneNumber - Valid Egyptian phone number to trigger OTP.
+ */
+export const signInWithPhoneSchema = joi.object({
+  phoneNumber: joi.string().pattern(REGEX.PHONE).required().messages({
+    "string.pattern.base": "Invalid phone number",
   }),
 });
 
-export const loginSchema = joi.object({
-  email: joi.string().email().required().messages({
-    'string.email': 'Email must be a valid email address.',
-    'any.required': 'Email is required.',
+/**
+ * @description Validation for OTP Verification Step
+ * @logic Uses XOR: Must provide (otpCode + email) OR (otpCode + phoneNumber).
+ * @body {string} otpCode - 4-digit numeric string sent via Email/SMS.
+ * @body {string} [email] - Required if verifying an email-based login.
+ * @body {string} [phoneNumber] - Required if verifying a phone-based login.
+ */
+export const otpValidationSchema = joi
+  .object({
+    otpCode: joi.string().length(4).pattern(REGEX.OTP).required().messages({
+      "string.length": "OTP must be 4 digits long.",
+      "string.pattern.base": "OTP must only contain digits.",
+      "any.required": "OTP code is required.",
+    }),
+
+    email: joi.string().email().messages({
+      "string.email": "Email must be a valid email address.",
+    }),
+
+    phoneNumber: joi.string().pattern(REGEX.PHONE).messages({
+      "string.pattern.base": "Invalid phone number",
+    }),
+  })
+  .xor("email", "phoneNumber")
+  .messages({
+    "object.xor":
+      "Please provide either an email or a phone number to verify the OTP.",
+  });
+
+
+
+
+
+
+
+  // تم اضافة هذا الفاليديشن بواسطة العبد لله - زين -  عشان بشمهندس حسام نايم 
+  // وربنا ما يحوجني لحد 
+  
+export const reSendOTPSchema = joi.object({
+  email: joi.string().email().messages({
+    "string.email": "Email must be a valid email address.",
   }),
 
-  password: joi.string().required().messages({
-    'any.required': 'Password is required.',
-  }),
-
-  otp: joi.string()
-    .length(6) // [ NOT REQUIRED IN THE DOCUMENTATION ]
-    .pattern(/^[0-9]{6}$/) // [ NOT REQUIRED IN THE DOCUMENTATION ]
+  type: joi.string()
+    .valid(...Object.values(OtpType))
     .required()
     .messages({
-      'string.length': 'OTP must be 6 digits long.',
-      'string.pattern.base': 'OTP must only contain digits.',
-      'any.required': 'Two-Factor Authentication (OTP) code is required.',
+      "any.only": `Type must be one of ${Object.values(OtpType).join(", ")}`,
+      "string.empty": "Type is required",
     }),
+
 });

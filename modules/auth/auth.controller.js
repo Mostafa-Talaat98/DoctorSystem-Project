@@ -3,6 +3,7 @@ import { UnAuthorizedException } from '../../utils/response/error.response.js';
 import { successResponse } from '../../utils/response/success.response.js';
 import { compareHash } from '../../utils/security/hash.js';
 import jwt from 'jsonwebtoken';
+import { verifyEmailOtp } from './Otp/otp.service.js';
 
 /**
  * @description Middleware/controller to verify a user's account using an OTP code.

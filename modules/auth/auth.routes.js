@@ -12,7 +12,7 @@ import { registerDoctor } from './doctor/doctor.controller.js';
 import validateRequest from '../middleware/validateRequest.middleware.js';
 import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
 import { reSendEmailOtp } from './Otp/otp.service.js';
-import { loginWithEmail, verifyAccount } from './auth.controller.js';
+import { login, signupWithGmail, verifyAccount } from './auth.controller.js';
 import { BadRequestException, NotFoundException } from '../../utils/response/error.response.js';
 
 const authRouter = Router();
@@ -29,11 +29,13 @@ authRouter.post('/patient/register', validateRequest(patientSignUpSchema), async
 
 authRouter.post('/re-send-otp', validateRequest(reSendOTPSchema), reSendEmailOtp);
 
-authRouter.post('/login', validateRequest(signInWithEmailSchema), loginWithEmail);
+authRouter.post('/login', validateRequest(signInWithEmailSchema), login);
 
 authRouter.post(
   '/verify-account',
   validateRequest(otpValidationSchema),
+
+  authRouter.post('/google/register', signupWithGmail),
 
   asyncHandler(async (req, res, next) => {
     const { email } = req.body;

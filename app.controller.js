@@ -15,7 +15,7 @@ const bootstrap = async (app, express) => {
     res.status(404).json({ message: "Not Found" });
   });
 
-  app.use(globalErrorHandler)
+  app.use(globalErrorHandler);
 };
 
 export default bootstrap;

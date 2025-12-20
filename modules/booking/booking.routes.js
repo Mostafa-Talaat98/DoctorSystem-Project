@@ -10,22 +10,22 @@ import {
   deleteBooking,
 } from "./booking.controller.js";
 
-const router = Router();
+const bookRouter = Router();
 
 // Create booking
-router.post("/", createBooking);
+bookRouter.post("/", createBooking);
 
 // Get bookings
-router.get("/doctor/:doctorId", getDoctorBookings);
-router.get("/:bookingId", getBooking);
+bookRouter.get("/doctor/:doctorId", getDoctorBookings);
+bookRouter.get("/:bookingId", getBooking);
 
 // Update booking status
-router.patch("/:bookingId/confirm", confirmBooking);
-router.patch("/:bookingId/reschedule", rescheduleBooking);
-router.patch("/:bookingId/cancel", cancelBooking);
-router.patch("/:bookingId", updateBooking);
+bookRouter.patch("/:bookingId/confirm", confirmBooking);
+bookRouter.patch("/:bookingId/reschedule", rescheduleBooking);
+bookRouter.patch("/:bookingId/cancel", cancelBooking);
+bookRouter.patch("/:bookingId", updateBooking);
 
 // Delete booking
-router.delete("/:bookingId", deleteBooking);
+bookRouter.delete("/:bookingId", deleteBooking);
 
-export default router;
+export default bookRouter;

@@ -73,6 +73,6 @@ export const globalErrorHandler = (error, req, res, next) => {
     name: error.name,
     statusCode: error.statusCode || 500,
     cause: error.cause,
-    error_stack: process.env.MOOD === 'development' ? error.stack : undefined,
+    error_stack: process.env.NODE_ENV === 'development' ? error.stack : undefined,
   });
 };

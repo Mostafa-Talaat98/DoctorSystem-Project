@@ -1,35 +1,31 @@
 import { Router } from 'express';
 import {
-  patientSignUpSchema,
-  doctorSignUpSchema,
   otpValidationSchema,
   reSendOTPSchema,
   signInWithEmailSchema,
   registerWithGoogleSchema,
+  refreshTokenSchema,
 } from './auth.schema.js';
-import { patientRegisterWithGmail, registerPatient } from './patient/patient.controller.js';
-import { doctorRegisterWithGmail, registerDoctor } from './doctor/doctor.controller.js';
-import validateRequest from '../middleware/validateRequest.middleware.js';
-import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
+import { validateCookies, validateRequest } from '../middleware/validateRequest.middleware.js';
 import { reSendEmailOtp } from './Otp/otp.service.js';
-import { login, loginWithGmail, verifyAccount } from './auth.controller.js';
+import { login, loginWithGmail, refreshSession, verifyAccount } from './auth.controller.js';
 import { BadRequestException, NotFoundException } from '../../utils/response/error.response.js';
+import doctorRouter from './doctor/doctor.routes.js';
+import patientRouter from './patient/patient.routes.js';
+import { PatientModel } from '../../DB/models/patient.model.js';
+import { DoctorModel } from '../../DB/models/doctor.model.js';
+import { authenticateUser } from '../middleware/authenticateUser.middleware.js';
+import { successResponse } from '../../utils/response/success.response.js';
 
 const authRouter = Router();
 
-// ===========================  Doctor ===========================
+authRouter.use(doctorRouter);
 
-authRouter.post('/doctor/register', validateRequest(doctorSignUpSchema), registerDoctor);
-
-authRouter.post('/doctor/google/register', validateRequest(registerWithGoogleSchema), doctorRegisterWithGmail);
-
-// ===========================  Patient ===========================
-
-authRouter.post('/patient/register', validateRequest(patientSignUpSchema), registerPatient);
-
-authRouter.post('/patient/google/register', validateRequest(registerWithGoogleSchema), patientRegisterWithGmail);
+authRouter.use(patientRouter);
 
 // ===========================  Shared ===========================
+
+authRouter.get('/refresh', validateCookies(refreshTokenSchema), refreshSession);
 
 authRouter.post('/re-send-otp', validateRequest(reSendOTPSchema), reSendEmailOtp);
 
@@ -39,24 +35,14 @@ authRouter.post('/verify-account', validateRequest(otpValidationSchema));
 
 authRouter.post('/google/login', validateRequest(registerWithGoogleSchema), loginWithGmail);
 
-authRouter.post(
-  '/verify-account',
-  validateRequest(otpValidationSchema),
+authRouter.post('/verify-account', validateRequest(otpValidationSchema), verifyAccount);
 
-  async (req, res, next) => {
-    const { email } = req.body;
-
-    const [patient, doctor] = await Promise.all([PatientModel.findOne({ email }), DoctorModel.findOne({ email })]);
-
-    if (!patient && !doctor) throw new NotFoundException('Verification Error', 'Account not found');
-
-    if ((patient && patient.isVerified) || (doctor && doctor.isVerified))
-      throw new BadRequestException('Verification Error', 'Account already verified');
-
-    if (doctor) return verifyAccount(DoctorModel)(req, res, next);
-
-    if (patient) return verifyAccount(PatientModel)(req, res, next);
-  }
-);
+authRouter.post('/test', authenticateUser([PatientModel]), (req, res) => {
+  console.log('GOOOOOOD');
+  console.log('user', req.user);
+  successResponse({
+    res,
+  });
+});
 
 export default authRouter;

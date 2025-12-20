@@ -17,7 +17,7 @@ export class BadRequestException extends ApplicationException {
 
 export class ValidationException extends ApplicationException {
   constructor(message, cause) {
-    super(message, 400, cause);
+    super(message, 402, cause);
   }
 }
 

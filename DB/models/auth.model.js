@@ -29,6 +29,7 @@ const PatientSchema = new Schema(
     },
     phoneNumber: {
       type: String,
+      sparse: true,
       unique: true,
     },
     isVerified: {

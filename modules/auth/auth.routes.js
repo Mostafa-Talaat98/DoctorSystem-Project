@@ -5,6 +5,7 @@ import {
   otpValidationSchema,
   reSendOTPSchema,
   signInWithEmailSchema,
+  registerWithGoogleSchema,
 } from './auth.schema.js';
 import { patientRegisterWithGmail, registerPatient } from './patient/patient.controller.js';
 import { doctorRegisterWithGmail, registerDoctor } from './doctor/doctor.controller.js';
@@ -20,15 +21,13 @@ const authRouter = Router();
 
 authRouter.post('/doctor/register', validateRequest(doctorSignUpSchema), registerDoctor);
 
-authRouter.post('/doctor/google/register', doctorRegisterWithGmail);
-
+authRouter.post('/doctor/google/register', validateRequest(registerWithGoogleSchema), doctorRegisterWithGmail);
 
 // ===========================  Patient ===========================
 
 authRouter.post('/patient/register', validateRequest(patientSignUpSchema), registerPatient);
 
-authRouter.post('/patient/google/register', patientRegisterWithGmail);
-
+authRouter.post('/patient/google/register', validateRequest(registerWithGoogleSchema), patientRegisterWithGmail);
 
 // ===========================  Shared ===========================
 
@@ -38,7 +37,7 @@ authRouter.post('/login', validateRequest(signInWithEmailSchema), login);
 
 authRouter.post('/verify-account', validateRequest(otpValidationSchema));
 
-authRouter.post('/google/login', loginWithGmail);
+authRouter.post('/google/login', validateRequest(registerWithGoogleSchema), loginWithGmail);
 
 authRouter.post(
   '/verify-account',

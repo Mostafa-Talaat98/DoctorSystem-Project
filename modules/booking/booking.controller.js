@@ -1,13 +1,12 @@
 import bookingModel from "../../DB/models/booking.model.js";
-import { createActor } from 'xstate';
-import { bookingMachine } from './booking.machine.js';
-import catchAsync from '../../utils/errors/catchAsync.js';
-import AppError from '../../utils/errors/AppError.js';
-import bookingErrors from './errorController.js';
+import { createActor } from "xstate";
+import { bookingMachine } from "./booking.machine.js";
+import { successResponse } from "../../utils/response/success.response.js";
+import bookingErrors from "./errorController.js";
 
 // Create booking
-export const createBooking = catchAsync(async (req, res, next) => {
-  const { doctorId, dateTime, paymentMethod } = req.body;
+export const createBooking = async (req, res, next) => {
+  const { doctorId, dateTime, paymentMethod } = req.body || {};
 
   if (!doctorId || !dateTime || !paymentMethod) {
     return next(bookingErrors.missingRequiredFields());
@@ -16,14 +15,14 @@ export const createBooking = catchAsync(async (req, res, next) => {
   const existingBooking = await bookingModel.findOne({
     doctorId,
     dateTime,
-    status: { $ne: 'Cancelled' },
+    status: { $ne: "Cancelled" },
   });
 
   if (existingBooking) {
     return next(bookingErrors.timeSlotAlreadyBooked());
   }
 
-  if (!['PayPal', 'Stripe', 'Cash'].includes(paymentMethod)) {
+  if (!["PayPal", "Stripe", "Cash"].includes(paymentMethod)) {
     return next(bookingErrors.invalidPaymentMethod());
   }
 
@@ -35,17 +34,19 @@ export const createBooking = catchAsync(async (req, res, next) => {
     doctorId,
     dateTime,
     paymentMethod,
-    status: 'Pending',
+    status: "Pending",
   });
 
-  res.status(201).json({
-    message: 'Booking created successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 201,
+    message: "Booking created successfully",
+    data: booking,
   });
-});
+};
 
 // Confirm booking
-export const confirmBooking = catchAsync(async (req, res, next) => {
+export const confirmBooking = async (req, res, next) => {
   const { bookingId } = req.params;
 
   const booking = await bookingModel.findById(bookingId);
@@ -53,7 +54,7 @@ export const confirmBooking = catchAsync(async (req, res, next) => {
     return next(bookingErrors.bookingNotFound());
   }
 
-  if (booking.status !== 'Pending') {
+  if (booking.status !== "Pending") {
     return next(bookingErrors.confirmOnlyPending());
   }
 
@@ -68,19 +69,21 @@ export const confirmBooking = catchAsync(async (req, res, next) => {
   });
 
   actor.start();
-  actor.send({ type: 'CONFIRM' });
+  actor.send({ type: "CONFIRM" });
 
-  booking.status = 'Confirmed';
+  booking.status = "Confirmed";
   await booking.save();
 
-  res.status(200).json({
-    message: 'Booking confirmed successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking confirmed successfully",
+    data: booking,
   });
-});
+};
 
 // Reschedule booking
-export const rescheduleBooking = catchAsync(async (req, res, next) => {
+export const rescheduleBooking = async (req, res, next) => {
   const { bookingId } = req.params;
   const { newDateTime } = req.body;
 
@@ -97,7 +100,7 @@ export const rescheduleBooking = catchAsync(async (req, res, next) => {
     return next(bookingErrors.bookingNotFound());
   }
 
-  if (booking.status === 'Cancelled') {
+  if (booking.status === "Cancelled") {
     return next(bookingErrors.cannotRescheduleCancelled());
   }
 
@@ -105,7 +108,7 @@ export const rescheduleBooking = catchAsync(async (req, res, next) => {
     doctorId: booking.doctorId,
     dateTime: newDateTime,
     _id: { $ne: bookingId },
-    status: { $ne: 'Cancelled' },
+    status: { $ne: "Cancelled" },
   });
 
   if (conflictingBooking) {
@@ -116,17 +119,19 @@ export const rescheduleBooking = catchAsync(async (req, res, next) => {
   actor.start();
 
   booking.dateTime = newDateTime;
-  booking.status = 'Rescheduled';
+  booking.status = "Rescheduled";
   await booking.save();
 
-  res.status(200).json({
-    message: 'Booking rescheduled successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking rescheduled successfully",
+    data: booking,
   });
-});
+};
 
 // Cancel booking
-export const cancelBooking = catchAsync(async (req, res, next) => {
+export const cancelBooking = async (req, res, next) => {
   const { bookingId } = req.params;
   const { reason } = req.body;
 
@@ -135,40 +140,44 @@ export const cancelBooking = catchAsync(async (req, res, next) => {
     return next(bookingErrors.bookingNotFound());
   }
 
-  if (booking.status === 'Cancelled') {
+  if (booking.status === "Cancelled") {
     return next(bookingErrors.alreadyCancelled());
   }
 
   const actor = createActor(bookingMachine);
   actor.start();
-  actor.send({ type: 'CANCEL' });
+  actor.send({ type: "CANCEL" });
 
-  booking.status = 'Cancelled';
+  booking.status = "Cancelled";
   await booking.save();
 
-  res.status(200).json({
-    message: 'Booking cancelled successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking cancelled successfully",
+    data: booking,
   });
-});
+};
 
 // Get booking details
-export const getBooking = catchAsync(async (req, res, next) => {
+export const getBooking = async (req, res, next) => {
   const { bookingId } = req.params;
 
-  const booking = await bookingModel.findById(bookingId).populate('doctorId');
+  const booking = await bookingModel.findById(bookingId).populate("doctorId");
   if (!booking) {
     return next(bookingErrors.bookingNotFound());
   }
 
-  res.status(200).json({
-    message: 'Booking retrieved successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking retrieved successfully",
+    data: booking,
   });
-});
+};
 
 // Get all bookings for a doctor
-export const getDoctorBookings = catchAsync(async (req, res, next) => {
+export const getDoctorBookings = async (req, res, next) => {
   const { doctorId } = req.params;
   const { status, startDate, endDate } = req.query;
 
@@ -188,20 +197,19 @@ export const getDoctorBookings = catchAsync(async (req, res, next) => {
     }
   }
 
-  const bookings = await bookingModel
-    .find(filter)
-    .sort({ dateTime: 1 })
-    .exec();
+  const bookings = await bookingModel.find(filter).sort({ dateTime: 1 }).exec();
 
-  res.status(200).json({
-    message: 'Bookings retrieved successfully',
-    total: bookings.length,
-    bookings,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Bookings retrieved successfully",
+    info: { total: bookings.length },
+    data: bookings,
   });
-});
+};
 
 // Update booking (generic update handler)
-export const updateBooking = catchAsync(async (req, res, next) => {
+export const updateBooking = async (req, res, next) => {
   const { bookingId } = req.params;
   const { status, paymentMethod } = req.body;
 
@@ -212,16 +220,14 @@ export const updateBooking = catchAsync(async (req, res, next) => {
 
   // Validate status transitions
   const validTransitions = {
-    Pending: ['Confirmed', 'Cancelled'],
-    Confirmed: ['Rescheduled', 'Cancelled'],
-    Rescheduled: ['Confirmed', 'Cancelled'],
+    Pending: ["Confirmed", "Cancelled"],
+    Confirmed: ["Rescheduled", "Cancelled"],
+    Rescheduled: ["Confirmed", "Cancelled"],
     Cancelled: [],
   };
 
   if (status && !validTransitions[booking.status]?.includes(status)) {
-    return next(
-      bookingErrors.invalidTransition(booking.status, status)
-    );
+    return next(bookingErrors.invalidTransition(booking.status, status));
   }
 
   if (status) booking.status = status;
@@ -229,19 +235,21 @@ export const updateBooking = catchAsync(async (req, res, next) => {
 
   await booking.save();
 
-  res.status(200).json({
-    message: 'Booking updated successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking updated successfully",
+    data: booking,
   });
-});
+};
 
 // Delete booking (soft delete)
-export const deleteBooking = catchAsync(async (req, res, next) => {
+export const deleteBooking = async (req, res, next) => {
   const { bookingId } = req.params;
 
   const booking = await bookingModel.findByIdAndUpdate(
     bookingId,
-    { status: 'Cancelled' },
+    { status: "Cancelled" },
     { new: true }
   );
 
@@ -249,8 +257,10 @@ export const deleteBooking = catchAsync(async (req, res, next) => {
     return next(bookingErrors.bookingNotFound());
   }
 
-  res.status(200).json({
-    message: 'Booking deleted successfully',
-    booking,
+  return successResponse({
+    res,
+    statusCode: 200,
+    message: "Booking deleted successfully",
+    data: booking,
   });
-});
+};

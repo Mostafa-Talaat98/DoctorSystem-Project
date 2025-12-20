@@ -37,12 +37,5 @@ authRouter.post('/google/login', validateRequest(registerWithGoogleSchema), logi
 
 authRouter.post('/verify-account', validateRequest(otpValidationSchema), verifyAccount);
 
-authRouter.post('/test', authenticateUser([PatientModel]), (req, res) => {
-  console.log('GOOOOOOD');
-  console.log('user', req.user);
-  successResponse({
-    res,
-  });
-});
 
 export default authRouter;

@@ -1,87 +1,33 @@
-/**
- * @class ApplicationException
- * @extends Error
- *
- * @description
- * Base class for all application-level exceptions.
- * Encapsulates an HTTP status code and optional root cause.
- *
- * @param {string} message - Human-readable error message.
- * @param {number} [statusCode=400] - HTTP status code.
- * @param {unknown} [cause] - Original error or reason.
- */
+
 export class ApplicationException extends Error {
   constructor(message, statusCode = 400, cause) {
     super(message, { cause });
     this.name = this.constructor.name;
     this.statusCode = statusCode;
-
     // Capture stack trace excluding constructor call
     Error.captureStackTrace(this, this.constructor);
   }
 }
 
-/**
- * @class BadRequestException
- * @extends ApplicationException
- *
- * @description
- * Represents a 400 Bad Request error.
- * Used when the client sends invalid or malformed data.
- *
- * @param {string} message - Error message.
- * @param {unknown} [cause] - Root cause of the error.
- */
 export class BadRequestException extends ApplicationException {
   constructor(message, cause) {
     super(message, 400, cause);
   }
 }
-/**
- * @class BadRequestException
- * @extends ApplicationException
- *
- * @description
- * Represents a 400 Validation Request error.
- * Used when the client sends invalid or malformed data.
- *
- * @param {string} message - Error message.
- * @param {unknown} [cause] - Root cause of the error.
- */
+
 export class ValidationException extends ApplicationException {
   constructor(message, cause) {
     super(message, 400, cause);
   }
 }
 
-/**
- * @class ConflictException
- * @extends ApplicationException
- *
- * @description
- * Represents a 409 Conflict error.
- * Used when a resource already exists or violates uniqueness.
- *
- * @param {string} message - Error message.
- * @param {unknown} [cause] - Root cause of the error.
- */
+
 export class ConflictException extends ApplicationException {
   constructor(message, cause) {
     super(message, 409, cause);
   }
 }
 
-/**
- * @class NotFoundException
- * @extends ApplicationException
- *
- * @description
- * Represents a 404 Not Found error.
- * Used when a requested resource cannot be located.
- *
- * @param {string} [message="Not Found"] - Error message.
- * @param {unknown} [cause] - Root cause of the error.
- */
 export class NotFoundException extends ApplicationException {
   constructor(message = 'Not Found', cause) {
     super(message, 404, cause);

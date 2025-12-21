@@ -1,13 +1,13 @@
 import cookieParser from "cookie-parser";
 import connectDB from "./DB/connect.js";
-import authRouter from "./modules/auth/auth.routes.js";
-import bookingRouter from "./modules/booking/booking.routes.js";
 import { globalErrorHandler } from "./utils/response/error.response.js";
 
 import cors from "cors";
 import helmet from "helmet";
 import morgan from "morgan";
 import { createRateLimiter } from "./utils/security/rate.limit.js";
+import authRouter from "./modules/auth/auth.controller.js";
+import bookingRouter from "./modules/booking/booking.controller.js";
 
 const bootstrap = async (app, express) => {
   app.set("trust proxy", 1);

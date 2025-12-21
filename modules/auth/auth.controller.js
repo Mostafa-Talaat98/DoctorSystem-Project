@@ -17,12 +17,12 @@ import {
   refreshSession,
   verifyAccount,
 } from "./auth.service.js";
-import doctorRouter from "./doctor/doctor.controller.js";
 import patientRouter from "./patient/patient.controller.js";
+import doctorAuthRouter from "./doctor/doctor.controller.js";
 
 const authRouter = Router();
 
-authRouter.use(doctorRouter);
+authRouter.use(doctorAuthRouter);
 
 authRouter.use(patientRouter);
 

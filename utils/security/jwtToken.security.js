@@ -1,15 +1,21 @@
-import jwt from 'jsonwebtoken';
-import ms from 'ms';
-import { UnAuthorizedException } from '../response/error.response.js';
-import RefreshTokenModel from '../../DB/models/refreshToken.model.js';
-import { Token } from '../types/token/token.types.js';
+import jwt from "jsonwebtoken";
+import ms from "ms";
+import { UnAuthorizedException } from "../response/error.response.js";
+import RefreshTokenModel from "../../DB/models/refreshToken.model.js";
+import { Token } from "../types/token/token.types.js";
 
 export const getAuthConfig = (type) => {
-  const isAccess = type === 'ACCESS_TOKEN';
+  const isAccess = type === "ACCESS_TOKEN";
   return {
-    key: isAccess ? process.env.ACCESS_TOKEN_KEY : process.env.REFRESH_TOKEN_KEY,
-    secret: isAccess ? process.env.ACCESS_TOKEN_SECRET : process.env.REFRESH_TOKEN_SECRET,
-    duration: isAccess ? process.env.ACCESS_TOKEN_DURATION : process.env.REFRESH_TOKEN_DURATION,
+    key: isAccess
+      ? process.env.ACCESS_TOKEN_KEY
+      : process.env.REFRESH_TOKEN_KEY,
+    secret: isAccess
+      ? process.env.ACCESS_TOKEN_SECRET
+      : process.env.REFRESH_TOKEN_SECRET,
+    duration: isAccess
+      ? process.env.ACCESS_TOKEN_DURATION
+      : process.env.REFRESH_TOKEN_DURATION,
   };
 };
 
@@ -41,21 +47,30 @@ export const createToken = async (payload, tokenType, userId = null) => {
 export const validateToken = async (req, models, tokenType) => {
   const { key } = getAuthConfig(tokenType);
   const token = req.cookies[key];
-  console.log('my token', req.cookies);
   const payload = verifyToken(tokenType, token);
 
   if (tokenType === Token.REFRESH_TOKEN) {
     const storedToken = await RefreshTokenModel.findOne({ token });
-    if (!storedToken) throw new UnAuthorizedException('Session expired or does not exist');
-    if (storedToken.isRevoked) throw new UnAuthorizedException('This session has been revoked');
+    if (!storedToken)
+      throw new UnAuthorizedException("Session expired or does not exist");
+    if (storedToken.isRevoked)
+      throw new UnAuthorizedException("This session has been revoked");
   }
 
   let user = null;
+
   for (const model of models) {
     user = await model.findById(payload.userId).lean();
-    if (user) break;
+
+    if (user) {
+      user.role = model.modelName.toLowerCase() ;
+      break;
+    }
   }
 
-  if (!user) throw new UnAuthorizedException('User no longer exists');
+  
+
+  if (!user) throw new UnAuthorizedException("User no longer exists");
+
   return user;
 };

@@ -66,7 +66,8 @@ export class TooManyRequestsException extends ApplicationException {
 
 
 export const globalErrorHandler = (error, req, res, next) => {
-  console.error(error);
+
+  // console.error(error);
 
   res.status(error.statusCode || 500).json({
     error_message: error.message || 'Something Went Wrong',

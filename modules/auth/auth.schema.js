@@ -1,5 +1,10 @@
 import joi from 'joi';
 import { OtpType } from './Otp/otp.types.js';
+import dotenv from 'dotenv';
+import { getAuthConfig } from '../../utils/security/jwtToken.security.js';
+import { Token } from '../../utils/types/token/token.types.js';
+dotenv.config();
+
 
 const REGEX = {
   FULL_NAME: /^[A-Za-z]+(?:\s[A-Za-z]+)+$/,
@@ -174,3 +179,14 @@ export const registerWithGoogleSchema = joi.object({
     'any.min': 'Invalid id token provided',
   }),
 });
+
+export const refreshTokenSchema = joi
+  .object({
+    [getAuthConfig(Token.REFRESH_TOKEN).key]: joi
+      .string()
+      .required()
+      .messages({
+        'any.required': `'${getAuthConfig(Token.REFRESH_TOKEN).key}' is required`,
+      }),
+  })
+  .unknown(true);

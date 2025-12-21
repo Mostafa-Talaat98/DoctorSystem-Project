@@ -9,13 +9,8 @@ import {
 import { validateCookies, validateRequest } from '../middleware/validateRequest.middleware.js';
 import { reSendEmailOtp } from './Otp/otp.service.js';
 import { login, loginWithGmail, refreshSession, verifyAccount } from './auth.controller.js';
-import { BadRequestException, NotFoundException } from '../../utils/response/error.response.js';
 import doctorRouter from './doctor/doctor.routes.js';
 import patientRouter from './patient/patient.routes.js';
-import { PatientModel } from '../../DB/models/patient.model.js';
-import { DoctorModel } from '../../DB/models/doctor.model.js';
-import { authenticateUser } from '../middleware/authenticateUser.middleware.js';
-import { successResponse } from '../../utils/response/success.response.js';
 
 const authRouter = Router();
 

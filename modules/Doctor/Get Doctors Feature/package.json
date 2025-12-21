@@ -1,0 +1,14 @@
+{
+    "name": "get-doctors-feature",
+    "version": "1.0.0",
+    "description": "Feature to retrieve doctors list",
+    "main": "index.js",
+    "type": "module",
+    "scripts": {
+        "start": "node index.js"
+    },
+    "dependencies": {
+        "express": "^4.18.2",
+        "mongoose": "^9.0.1"
+    }
+}

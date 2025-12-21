@@ -1,5 +1,6 @@
 import bcrypt from 'bcryptjs';
-import { DoctorModel, PatientModel } from '../../../DB/models/auth.model.js';
+import DoctorModel from '../../../DB/models/DoctorSchema.js';
+import PatientModel from '../../../DB/models/patientSchema.js';
 import { sendVerifyEmailOtp } from '../Otp/otp.service.js';
 import { decodeString, encodeString } from '../../../utils/security/encryption.js';
 import { ApplicationException, BadRequestException, ConflictException } from '../../../utils/response/error.response.js';

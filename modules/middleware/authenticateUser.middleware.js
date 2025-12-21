@@ -1,6 +1,7 @@
 import jwt from 'jsonwebtoken';
 import { UnAuthorizedException } from '../../utils/response/error.response.js';
-import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
+import DoctorModel from '../../DB/models/DoctorSchema.js';
+import PatientModel from '../../DB/models/patientSchema.js';
 import { verifyToken } from '../../utils/security/jwtToken.js';
 
 /**
@@ -18,7 +19,7 @@ export const authenticateUser = (models = [DoctorModel, PatientModel], tokenHead
     const token = authHeader.split(' ')[1];
 
     const payload = verifyToken(token);
-    if (payload) throw new UnAuthorizedException('Invalid or expired token');
+    if (!payload) throw new UnAuthorizedException('Invalid or expired token');
 
     const { userId } = payload;
     if (!userId) throw new UnAuthorizedException('Invalid token payload');

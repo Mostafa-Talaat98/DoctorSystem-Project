@@ -10,7 +10,8 @@ import {
 import { patientRegisterWithGmail, registerPatient } from './patient/patient.controller.js';
 import { doctorRegisterWithGmail, registerDoctor } from './doctor/doctor.controller.js';
 import validateRequest from '../middleware/validateRequest.middleware.js';
-import { DoctorModel, PatientModel } from '../../DB/models/auth.model.js';
+import DoctorModel from '../../DB/models/DoctorSchema.js';
+import PatientModel from '../../DB/models/patientSchema.js';
 import { reSendEmailOtp } from './Otp/otp.service.js';
 import { login, loginWithGmail, verifyAccount } from './auth.controller.js';
 import { BadRequestException, NotFoundException } from '../../utils/response/error.response.js';

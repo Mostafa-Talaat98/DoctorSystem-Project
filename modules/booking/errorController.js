@@ -1,26 +1,31 @@
-import AppError from "../../utils/errors/AppError.js";
+import {
+  BadRequestException,
+  NotFoundException,
+  ConflictException,
+  ValidationException,
+} from "../../utils/response/error.response.js";
 
 export const bookingErrors = {
   // Generic/common
-  missingRequiredFields: () => new AppError("Missing required fields", 400),
-  invalidPaymentMethod: () => new AppError("Invalid payment method", 400),
-  pastDatesNotAllowed: () => new AppError("Cannot book past dates", 400),
-  bookingNotFound: () => new AppError("Booking not found", 404),
-  timeSlotAlreadyBooked: () => new AppError("Time slot already booked", 409),
-  alreadyCancelled: () => new AppError("Booking is already cancelled", 400),
+  missingRequiredFields: () => new ValidationException("Missing required fields"),
+  invalidPaymentMethod: () => new BadRequestException("Invalid payment method"),
+  pastDatesNotAllowed: () => new BadRequestException("Cannot book past dates"),
+  bookingNotFound: () => new NotFoundException("Booking not found"),
+  timeSlotAlreadyBooked: () => new ConflictException("Time slot already booked"),
+  alreadyCancelled: () => new BadRequestException("Booking is already cancelled"),
 
   // Flow-specific
   confirmOnlyPending: () =>
-    new AppError("Can only confirm pending bookings", 400),
+    new BadRequestException("Can only confirm pending bookings"),
   cannotRescheduleCancelled: () =>
-    new AppError("Cannot reschedule cancelled bookings", 400),
-  newDateTimeRequired: () => new AppError("New date/time is required", 400),
+    new BadRequestException("Cannot reschedule cancelled bookings"),
+  newDateTimeRequired: () => new BadRequestException("New date/time is required"),
   doctorIdAndDateRequired: () =>
-    new AppError("Doctor ID and date are required", 400),
+    new ValidationException("Doctor ID and date are required"),
 
   // Transition errors
   invalidTransition: (from, to) =>
-    new AppError(`Cannot transition from ${from} to ${to}`, 400),
+    new BadRequestException(`Cannot transition from ${from} to ${to}`),
 };
 
 export default bookingErrors;

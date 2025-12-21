@@ -1,12 +1,17 @@
 import bcrypt from 'bcryptjs';
-import { DoctorModel, PatientModel } from '../../../DB/models/auth.model.js';
 import { sendVerifyEmailOtp } from '../Otp/otp.service.js';
-import { decodeString, encodeString } from '../../../utils/security/encryption.js';
-import { ApplicationException, BadRequestException, ConflictException } from '../../../utils/response/error.response.js';
+import { decodeString, encodeString } from '../../../utils/security/encryption.security.js';
+import {
+  ApplicationException,
+  BadRequestException,
+  ConflictException,
+} from '../../../utils/response/error.response.js';
 import { successResponse } from '../../../utils/response/success.response.js';
 import { verifyGmailAccount } from '../googleAuthentication/googleAuthentication.service.js';
 import { ProviderType } from '../../../utils/types/user/user.types.js';
 import { loginWithGmail } from '../auth.controller.js';
+import { PatientModel } from '../../../DB/models/patient.model.js';
+import { DoctorModel } from '../../../DB/models/doctor.model.js';
 
 export const registerPatient = async (req, res, next) => {
   const { fullName, email, password, phoneNumber, birthday } = req.body;
@@ -23,6 +28,7 @@ export const registerPatient = async (req, res, next) => {
   const newPatient = await PatientModel.create({
     fullName,
     email,
+    provider: 'System',
     password: hashedPassword,
     phoneNumber: await encodeString(phoneNumber),
     birthday,

@@ -1,11 +1,12 @@
 import bcrypt from 'bcrypt';
 import { sendVerifyEmailOtp } from '../Otp/otp.service.js';
-import { DoctorModel, PatientModel } from '../../../DB/models/auth.model.js';
 import { ConflictException } from '../../../utils/response/error.response.js';
 import { successResponse } from '../../../utils/response/success.response.js';
 import { verifyGmailAccount } from '../googleAuthentication/googleAuthentication.service.js';
 import { ProviderType } from '../../../utils/types/user/user.types.js';
 import { loginWithGmail } from '../auth.controller.js';
+import { PatientModel } from '../../../DB/models/patient.model.js';
+import { DoctorModel } from '../../../DB/models/doctor.model.js';
 
 export const registerDoctor = async (req, res) => {
   const { fullName, email, password, phoneNumber, birthday } = req.body;
@@ -29,6 +30,7 @@ export const registerDoctor = async (req, res) => {
   const newDoctor = await DoctorModel.create({
     fullName,
     email,
+    provider: 'System',
     password: hashedPassword,
     phoneNumber,
     birthday,

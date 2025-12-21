@@ -1,15 +1,31 @@
-import express from "express";
-import * as bookingController from "./booking.controller.js";
+import { Router } from "express";
+import {
+  createBooking,
+  getBooking,
+  getDoctorBookings,
+  confirmBooking,
+  rescheduleBooking,
+  cancelBooking,
+  updateBooking,
+  deleteBooking,
+} from "./booking.controller.js";
 
-const router = express.Router();
+const bookRouter = Router();
 
-router.post("/", bookingController.createBooking);
-router.get("/doctor/:doctorId", bookingController.getDoctorBookings);
-router.get("/:bookingId", bookingController.getBooking);
-router.patch("/:bookingId/confirm", bookingController.confirmBooking);
-router.patch("/:bookingId/reschedule", bookingController.rescheduleBooking);
-router.patch("/:bookingId/cancel", bookingController.cancelBooking);
-router.patch("/:bookingId", bookingController.updateBooking);
-router.delete("/:bookingId", bookingController.deleteBooking);
+// Create booking
+bookRouter.post("/", createBooking);
 
-export default router;
+// Get bookings
+bookRouter.get("/doctor/:doctorId", getDoctorBookings);
+bookRouter.get("/:bookingId", getBooking);
+
+// Update booking status
+bookRouter.patch("/:bookingId/confirm", confirmBooking);
+bookRouter.patch("/:bookingId/reschedule", rescheduleBooking);
+bookRouter.patch("/:bookingId/cancel", cancelBooking);
+bookRouter.patch("/:bookingId", updateBooking);
+
+// Delete booking
+bookRouter.delete("/:bookingId", deleteBooking);
+
+export default bookRouter;

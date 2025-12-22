@@ -5,8 +5,8 @@ import { verifyEmailOtp } from './Otp/otp.service.js';
 import { verifyGmailAccount } from './googleAuthentication/googleAuthentication.service.js';
 import { createToken, getAuthConfig, validateToken } from '../../utils/security/jwtToken.security.js';
 import { setResponseCookie } from '../../utils/security/cookie.security.js';
-import { DoctorModel } from '../../DB/models/doctor.model.js';
-import { PatientModel } from '../../DB/models/patient.model.js';
+import DoctorModel from '../../DB/models/DoctorSchema.js';
+import PatientModel from '../../DB/models/patientSchema.js';
 import { Token } from '../../utils/types/token/token.types.js';
 
 export const verifyAccount = async (req, res) => {

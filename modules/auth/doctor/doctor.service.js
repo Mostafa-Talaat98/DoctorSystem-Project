@@ -5,8 +5,8 @@ import { successResponse } from '../../../utils/response/success.response.js';
 import { verifyGmailAccount } from '../googleAuthentication/googleAuthentication.service.js';
 import { ProviderType } from '../../../utils/types/user/user.types.js';
 import { loginWithGmail } from '../auth.service.js';
-import { PatientModel } from '../../../DB/models/patient.model.js';
-import { DoctorModel } from '../../../DB/models/doctor.model.js';
+import PatientModel from '../../../DB/models/patientSchema.js';
+import DoctorModel from '../../../DB/models/DoctorSchema.js';
 
 export const registerDoctor = async (req, res) => {
   const { fullName, email, password, phoneNumber, birthday } = req.body;

@@ -16,3 +16,5 @@ export const authenticateUser = (models = [DoctorModel, PatientModel]) => {
     next();
   };
 };
+
+

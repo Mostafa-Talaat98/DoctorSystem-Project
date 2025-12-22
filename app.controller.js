@@ -8,6 +8,8 @@ import morgan from "morgan";
 import { createRateLimiter } from "./utils/security/rate.limit.js";
 import authRouter from "./modules/auth/auth.controller.js";
 import bookingRouter from "./modules/booking/booking.controller.js";
+import usersRouter from "./modules/users/users.controller.js";
+import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
 
 const bootstrap = async (app, express) => {
   app.set("trust proxy", 1);
@@ -30,11 +32,14 @@ const bootstrap = async (app, express) => {
   await connectDB();
 
   app.use("/api/auth", createRateLimiter(20, 15 * 60 * 1000), authRouter);
+
   app.use(
     "/api/booking",
     createRateLimiter(1000, 60 * 60 * 1000),
     bookingRouter
   );
+
+  app.use("/api/user", createRateLimiter(1000, 60 * 60 * 1000),authenticateUser(), usersRouter);
 
   // 404 Router
   app.all("{*dummy}", (req, res) => {

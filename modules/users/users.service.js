@@ -1,5 +1,5 @@
-import { DoctorModel } from "../../DB/models/doctor.model.js";
-import { PatientModel } from "../../DB/models/patient.model.js";
+import DoctorModel from "../../DB/models/DoctorSchema.js";
+import PatientModel from "../../DB/models/patientSchema.js";
 import { deleteImageFromCloudinary } from "../../utils/cloudinary/cloudinary.delete.js";
 import { uploadToCloudinary } from "../../utils/cloudinary/cloudinary.upload.js";
 import {
@@ -40,7 +40,7 @@ export const uploadProfilePicture = async (req, res) => {
   }
 
 
-  if(user.image.public_id){
+  if (user.image.public_id) {
     deleteImageFromCloudinary(user.image.public_id)
   }
 
@@ -57,7 +57,7 @@ export const uploadProfilePicture = async (req, res) => {
   );
 
 
-  if(!updated.modifiedCount){
+  if (!updated.modifiedCount) {
     throw new ApplicationException("Fail to upload image");
   }
 
@@ -65,10 +65,10 @@ export const uploadProfilePicture = async (req, res) => {
 
   return successResponse({
     res,
-    message:"Profile picture updated success",
-    data:{
-        url: secure_url,
-        public_id,
+    message: "Profile picture updated success",
+    data: {
+      url: secure_url,
+      public_id,
     }
   })
 };

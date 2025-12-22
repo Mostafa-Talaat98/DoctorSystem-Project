@@ -8,4 +8,5 @@ const PatientSchema = new Schema({
         ref: 'Doctor'
     }]
 }, { timestamps: true });
-export default model('Patient', PatientSchema);
+const patientSchema = mongoose.models.Patient || model('Patient', PatientSchema);
+export default patientSchema;

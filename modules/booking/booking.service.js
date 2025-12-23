@@ -1,4 +1,6 @@
 import bookingModel from "../../DB/models/booking.model.js";
+import DoctorModel from "../../DB/models/DoctorSchema.js";
+import mongoose from "mongoose";
 import { createActor } from "xstate";
 import { bookingMachine } from "./booking.machine.js";
 import { successResponse } from "../../utils/response/success.response.js";
@@ -8,8 +10,11 @@ import bookingErrors from "./errorController.js";
 export const createBooking = async (req, res, next) => {
   const { doctorId, dateTime, paymentMethod } = req.body || {};
 
-  if (!doctorId || !dateTime || !paymentMethod) {
-    return next(bookingErrors.missingRequiredFields());
+  
+
+  const doctorExists = await DoctorModel.findById(doctorId).lean();
+  if (!doctorExists) {
+    return next(bookingErrors.doctorNotFound());
   }
 
   const existingBooking = await bookingModel.findOne({
@@ -22,13 +27,6 @@ export const createBooking = async (req, res, next) => {
     return next(bookingErrors.timeSlotAlreadyBooked());
   }
 
-  if (!["PayPal", "Stripe", "Cash"].includes(paymentMethod)) {
-    return next(bookingErrors.invalidPaymentMethod());
-  }
-
-  if (new Date(dateTime) <= new Date()) {
-    return next(bookingErrors.pastDatesNotAllowed());
-  }
 
   const booking = await bookingModel.create({
     doctorId,

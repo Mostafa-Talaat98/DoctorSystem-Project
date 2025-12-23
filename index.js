@@ -1,6 +1,9 @@
+import dotenv from "dotenv";
 import express from "express";
 import bootstrap from "./app.controller.js";
-import dotenv from "dotenv";
+import connectDB from "./DB/connect.js";
+
+// import doctorRoutes from "./modules/Doctor/Get Doctors Feature/Routes/getDoctorsRoutes.js";
 
 dotenv.config();
 const app = express();

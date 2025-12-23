@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { authenticateUser } from "../middleware/authenticateUser.middleware.js";
 import {
   createBooking,
   getBooking,
@@ -12,6 +13,9 @@ import {
 
 const bookingRouter = Router();
 
+// Require authentication for all booking routes
+bookingRouter.use(authenticateUser());
+
 // Create booking
 bookingRouter.post("/", createBooking);
 
@@ -20,9 +24,9 @@ bookingRouter.get("/doctor/:doctorId", getDoctorBookings);
 bookingRouter.get("/:bookingId", getBooking);
 
 // Update booking status
-bookingRouter.patch("/:bookingId/confirm", confirmBooking);
-bookingRouter.patch("/:bookingId/reschedule", rescheduleBooking);
-bookingRouter.patch("/:bookingId/cancel", cancelBooking);
+bookingRouter.patch("/confirm/:bookingId", confirmBooking);
+bookingRouter.patch("/reschedule/:bookingId", rescheduleBooking);
+bookingRouter.patch("/cancel/:bookingId", cancelBooking);
 bookingRouter.patch("/:bookingId", updateBooking);
 
 // Delete booking

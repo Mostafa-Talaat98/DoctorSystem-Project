@@ -10,8 +10,12 @@ import authRouter from "./modules/auth/auth.controller.js";
 import bookingRouter from "./modules/booking/booking.controller.js";
 import usersRouter from "./modules/users/users.controller.js";
 import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
+import express from "express";
 
-const bootstrap = async (app, express) => {
+const app = express();
+const port = process.env.PORT || 3000;
+
+const bootstrap = async () => {
   app.set("trust proxy", 1);
 
   app.use(helmet());
@@ -39,7 +43,12 @@ const bootstrap = async (app, express) => {
     bookingRouter
   );
 
-  app.use("/api/user", createRateLimiter(1000, 60 * 60 * 1000),authenticateUser(), usersRouter);
+  app.use(
+    "/api/user",
+    createRateLimiter(1000, 60 * 60 * 1000),
+    authenticateUser(),
+    usersRouter
+  );
 
   // 404 Router
   app.all("{*dummy}", (req, res) => {
@@ -52,6 +61,8 @@ const bootstrap = async (app, express) => {
   });
 
   app.use(globalErrorHandler);
+
+  app.listen(port, () => console.log(`app listening on port ${port}! 🚀`));
 };
 
 export default bootstrap;

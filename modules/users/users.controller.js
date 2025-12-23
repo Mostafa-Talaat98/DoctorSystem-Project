@@ -8,4 +8,8 @@ usersRouter.patch("/upload-profile-picture",cloudFileUpload({
     validation: fileValidation.image,
   }).single("image"), usersService.uploadProfilePicture);
 
+
+
+usersRouter.patch("/:id/like",usersService.toggleLike);
+
 export default usersRouter;

@@ -41,8 +41,7 @@ const bootstrap = async (app, express) => {
   );
 
   app.use("/api/user", createRateLimiter(1000, 60 * 60 * 1000), authenticateUser(), usersRouter);
-  // app.use("/api/doctors", doctorFavouriteRouter);
-  // app.use("/api/doctors", getDoctorsRouter);
+
 
   // 404 Router
   app.all("{*dummy}", (req, res) => {

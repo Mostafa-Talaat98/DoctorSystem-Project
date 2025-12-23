@@ -73,6 +73,10 @@ export const uploadProfilePicture = async (req, res) => {
   })
 };
 
+
+// ============================================== 
+
+
 export const toggleLike = async (req, res) => {
     try {
         const { id: doctorId } = req.params;

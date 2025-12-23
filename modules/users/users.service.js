@@ -96,9 +96,9 @@ export const toggleLike = async (req, res) => {
         const isLiked = doctor.likes ? doctor.likes.some(id => (id._id || id).toString() === patientId.toString()) : false;
 
         if (isLiked) {
-            await Doctor.findByIdAndUpdate(doctorId, { $pull: { likes: patientId } });
-            await Patient.findByIdAndUpdate(patientId, { $pull: { favorites: doctorId } });
-            res.status(200).json({ message: "Doctor unliked successfully", isLiked: false });
+            await DoctorModel.findByIdAndUpdate(doctorId, { $pull: { likes: patientId } });
+            await PatientModel.findByIdAndUpdate(patientId, { $pull: { favorites: doctorId } });
+            res.status(200).json({ message: "Doctor unlike successfully", isLiked: false });
         } else {
             await DoctorModel.findByIdAndUpdate(doctorId, { $addToSet: { likes: patientId } });
             await PatientModel.findByIdAndUpdate(patientId, { $addToSet: { favorites: doctorId } });

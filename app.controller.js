@@ -10,8 +10,7 @@ import authRouter from "./modules/auth/auth.controller.js";
 import bookingRouter from "./modules/booking/booking.controller.js";
 import usersRouter from "./modules/users/users.controller.js";
 import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
-import doctorFavouriteRouter from "./modules/Doctor/Favourite feature/Routes/doctorRoutes.js";
-import getDoctorsRouter from "./modules/Doctor/Get Doctors Feature/Routes/getDoctorsRoutes.js";
+
 
 const bootstrap = async (app, express) => {
   app.set("trust proxy", 1);
@@ -42,8 +41,8 @@ const bootstrap = async (app, express) => {
   );
 
   app.use("/api/user", createRateLimiter(1000, 60 * 60 * 1000), authenticateUser(), usersRouter);
-  app.use("/api/doctors", doctorFavouriteRouter);
-  app.use("/api/doctors", getDoctorsRouter);
+  // app.use("/api/doctors", doctorFavouriteRouter);
+  // app.use("/api/doctors", getDoctorsRouter);
 
   // 404 Router
   app.all("{*dummy}", (req, res) => {

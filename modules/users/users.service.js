@@ -7,6 +7,10 @@ import {
   BadRequestException,
 } from "../../utils/response/error.response.js";
 import { successResponse } from "../../utils/response/success.response.js";
+import Chat from "./chat.model.js";
+import Message from "./message.model.js";
+import mongoose from "mongoose";
+
 
 export const uploadProfilePicture = async (req, res) => {
   const { user } = req;
@@ -75,7 +79,8 @@ export const uploadProfilePicture = async (req, res) => {
 
 
 // ============================================== 
-
+//Doctor Routes
+// ============================================== 
 
 export const toggleLike = async (req, res) => {
   try {
@@ -177,4 +182,149 @@ export const getDoctorByName = async (req, res) => {
     console.error("Error fetching doctors by name:", error);
     res.status(500).json({ message: "Server Error" });
   }
+};
+
+//======================================================
+//Chat Routes
+//======================================================
+
+//Get all chats for logged-in user
+export const getChats = async (req, res, next) => {
+  const userId = req.user._id;
+
+  const chats = await Chat.find({
+    $or: [{ doctor: userId }, { patient: userId }],
+    status: "active",
+  })
+    .populate("doctor", "name specialty")
+    .populate("patient", "name")
+    .populate("lastMessage")
+    .sort({ updatedAt: -1 });
+
+  res.json(chats);
+};
+
+// Get messages of a chat 
+export const getMessages = async (req, res, next) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
+
+  if (!mongoose.Types.ObjectId.isValid(chatId)) {
+    return res.status(400).json({ message: "Invalid chat id" });
+  }
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  // Authorization: user must be part of the chat
+  if (
+    chat.doctor.toString() !== userId.toString() &&
+    chat.patient.toString() !== userId.toString()
+  ) {
+    return res.status(403).json({ message: "Access denied" });
+  }
+
+  // Pagination
+  const page = Number(req.query.page) || 1;
+  const limit = 20;
+  const skip = (page - 1) * limit;
+
+  const messages = await Message.find({ chat: chatId })
+    .sort({ createdAt: -1 })
+    .skip(skip)
+    .limit(limit);
+
+  res.json({ page, messages });
+};
+
+//Send message (create chat if not exists)
+export const sendMessage = async (req, res, next) => {
+  const senderId = req.user._id;
+  const { receiverId, content, type = "text" } = req.body;
+
+  if (!receiverId || !content) {
+    return res.status(400).json({ message: "Missing required fields" });
+  }
+
+  // Determine roles (Doctor ↔ Patient)
+  const isDoctorSender = req.user.role === "DOCTOR";
+
+  const chatQuery = isDoctorSender
+    ? { doctor: senderId, patient: receiverId }
+    : { doctor: receiverId, patient: senderId };
+
+  let chat = await Chat.findOne(chatQuery);
+
+  // Create chat if first message
+  if (!chat) {
+    chat = await Chat.create(chatQuery);
+  }
+
+  const message = await Message.create({
+    chat: chat._id,
+    sender: senderId,
+    receiver: receiverId,
+    content,
+    type,
+  });
+
+  // Update chat metadata
+  chat.lastMessage = message._id;
+
+  const receiverUnread =
+    chat.unreadCount.get(receiverId.toString()) || 0;
+  chat.unreadCount.set(receiverId.toString(), receiverUnread + 1);
+
+  await chat.save();
+
+  res.status(201).json(message);
+};
+
+//Mark messages as read
+export const markAsRead = async (req, res, next) => {
+  const { chatId } = req.params;
+  const userId = req.user._id;
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  await Message.updateMany(
+    { chat: chatId, receiver: userId, isRead: false },
+    { isRead: true }
+  );
+
+  chat.unreadCount.set(userId.toString(), 0);
+  await chat.save();
+
+  res.json({ message: "Messages marked as read" });
+};
+
+
+// Favorite / Unfavorite chat
+export const toggleFavorite = async (req, res, next) => {
+  const { chatId } = req.params;
+  const userId = req.user._id.toString();
+
+  const chat = await Chat.findById(chatId);
+  if (!chat) {
+    return res.status(404).json({ message: "Chat not found" });
+  }
+
+  const index = chat.favorites.findIndex(
+    (id) => id.toString() === userId
+  );
+
+  if (index > -1) {
+    chat.favorites.splice(index, 1);
+  } else {
+    chat.favorites.push(userId);
+  }
+
+  await chat.save();
+
+  res.json({ favorites: chat.favorites });
 };

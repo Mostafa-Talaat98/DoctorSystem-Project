@@ -1,6 +1,9 @@
 import cookieParser from "cookie-parser";
 import connectDB from "./DB/connect.js";
 import { globalErrorHandler } from "./utils/response/error.response.js";
+import { createServer } from "http";
+import { Server } from "socket.io";
+import { initializeSocket } from "./modules/users/chat.socket.js";
 
 import cors from "cors";
 import helmet from "helmet";
@@ -15,25 +18,27 @@ import express from "express";
 const app = express();
 const port = process.env.PORT || 3000;
 
-const bootstrap = async () => {
+export const bootstrap = async () => {
   app.set("trust proxy", 1);
 
   app.use(helmet());
   app.use(morgan("dev"));
 
-  app.use(
-    cors({
-      origin: ["http://localhost:4200", "http://127.0.0.1:5500"],
-      credentials: true,
-      allowedHeaders: ["Content-Type", "Authorization"],
-      methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
-    })
-  );
+  const corsOptions = {
+    origin: ["http://localhost:4200", "http://127.0.0.1:5500"],
+    credentials: true,
+    allowedHeaders: ["Content-Type", "Authorization"],
+    methods: ["GET", "POST", "PUT", "PATCH", "DELETE"],
+  };
+
+  app.use(cors(corsOptions));
 
   app.use(express.json());
   app.use(cookieParser());
 
   await connectDB();
+
+  
 
   app.use("/api/auth", createRateLimiter(20, 15 * 60 * 1000), authRouter);
 
@@ -62,7 +67,17 @@ const bootstrap = async () => {
 
   app.use(globalErrorHandler);
 
-  app.listen(port, () => console.log(`app listening on port ${port}! 🚀`));
+ const httpServer =app.listen(port, () => console.log(`app listening on port ${port}!`));
+  // Socket.io Setup
+  const io = new Server(httpServer, {
+  cors: {
+    origin: "*",
+    methods: ["GET", "POST"],
+  },
+});
+
+
+  initializeSocket(io);
 };
 
 export default bootstrap;

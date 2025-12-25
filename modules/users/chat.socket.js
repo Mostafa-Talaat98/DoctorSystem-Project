@@ -50,11 +50,11 @@ export const initializeSocket = (io) => {
 
 
         if (receiverId.toString() === senderId.toString()) {
-          callback("محدش يكلم نفسه هنا يا ابن الهبلة");
+          callback("Cannot message yourself");
         }
 
         if (!Types.ObjectId.isValid(receiverId)) {
-          callback("ReceiverId Is Not ObjectId يا ابن الجزمة");
+          callback("ReceiverId Is Not ObjectId ");
         }
 
         if (!receiverId || !content || !type) {
@@ -72,15 +72,15 @@ export const initializeSocket = (io) => {
         ]);
 
         if (!isDoctorReceiver && !isPatientReceiver) {
-          callback("ReceiverId Not Found يا ابن الجزمة");
+          callback("ReceiverId Not Found");
         }
 
         if (isDoctorSender && isDoctorReceiver) {
-          callback("الدكاترة معيكلموش بعضيهم يا ابن الجزمة");
+          callback("Doctors Cannot Talk to each others");
         }
 
         if (isPatientSender && isPatientReceiver) {
-          callback("المرضى ولاد المرضى معيكلموش بعضيهم يا ابن الجزمة");
+          callback("Patients Talk to each others");
         }
 
         // Find or create chat

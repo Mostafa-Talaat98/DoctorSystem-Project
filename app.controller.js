@@ -1,9 +1,7 @@
 import cookieParser from "cookie-parser";
 import connectDB from "./DB/connect.js";
 import { globalErrorHandler } from "./utils/response/error.response.js";
-import { createServer } from "http";
-import { Server } from "socket.io";
-import { initializeSocket } from "./modules/users/chat.socket.js";
+import reviewRouter from "./modules/review/review.routes.js";
 
 import cors from "cors";
 import helmet from "helmet";
@@ -14,6 +12,8 @@ import bookingRouter from "./modules/booking/booking.controller.js";
 import usersRouter from "./modules/users/users.controller.js";
 import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
 import express from "express";
+import { initializeSocket } from "./modules/users/chat.socket.js";
+import { Server } from "socket.io";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -55,6 +55,8 @@ export const bootstrap = async () => {
     usersRouter
   );
 
+  app.use("/api/reviews", reviewRouter);
+  
   // 404 Router
   app.all("{*dummy}", (req, res) => {
     res.status(404).json({
@@ -67,17 +69,19 @@ export const bootstrap = async () => {
 
   app.use(globalErrorHandler);
 
- const httpServer =app.listen(port, () => console.log(`app listening on port ${port}!`));
-  // Socket.io Setup
+  const httpServer = app.listen(port, () =>
+    console.log(`app listening on port ${port}! 🚀`)
+  );
+
   const io = new Server(httpServer, {
-  cors: {
-    origin: "*",
-    methods: ["GET", "POST"],
-  },
-});
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
+  });
 
 
-  initializeSocket(io);
+    initializeSocket(io);
 };
 
 export default bootstrap;

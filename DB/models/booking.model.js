@@ -22,6 +22,17 @@ const bookingSchema = new Schema(
       default: "Pending",
       required: true,
     },
+<<<<<<< HEAD
+=======
+    paypalOrderId: {
+      type: String,
+    },
+    paymentStatus: {
+      type: String,
+      enum: ["Pending", "Paid", "Failed", "Refunded"],
+      default: "Pending",
+    },
+>>>>>>> booking-payment
   },
   { timestamps: true }
 );

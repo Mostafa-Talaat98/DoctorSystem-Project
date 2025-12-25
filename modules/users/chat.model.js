@@ -1,51 +1,59 @@
-import { Schema, model } from "mongoose";
+import mongoose from "mongoose";
 
-const chatSchema = new Schema(
+const { Schema, model, models } = mongoose;
+
+
+const messageSchema = new Schema(
   {
-    doctor: {
-      type: Schema.Types.ObjectId,
-      ref: "Doctor",
-      required: true,
-    },
-    patient: {
-      type: Schema.Types.ObjectId,
-      ref: "Patient",
-      required: true,
-    },
-
-    messages: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "Message",
-      },
-    ],
-
-    unreadCount: {
-      type: Map,
-      of: Number,
-      default: {},
-    },
-
-    favorites: [
-      {
-        type: Schema.Types.ObjectId,
-        ref: "User",
-      },
-    ],
-
-    status: {
+    content: {
       type: String,
-      enum: ["active", "archived", "blocked"],
-      default: "active",
+      required: true,
+    },
+
+    createdBy: {
+      type: Schema.Types.ObjectId,
+      ref: "User",
+      required: true,
+    },
+
+    seen: {
+      type: Boolean,
+      default: false,
+    },
+
+    seenAt: {
+      type: Date,
     },
   },
   { timestamps: true }
 );
 
-// يمنع وجود أكتر من شات لنفس الدكتور والمريض
-chatSchema.index({ doctor: 1, patient: 1 }, { unique: true });
 
-// ترتيب الشاتات حسب آخر تحديث
+const chatSchema = new Schema(
+  {
+    // لازم يكونوا 2 بس
+    participants: [
+      {
+        type: Schema.Types.ObjectId,
+        ref: "User",
+        required: true,
+      },
+    ],
+
+    messages: [messageSchema],
+  },
+  { timestamps: true }
+);
+
+
+// يمنع تكرار شات بين نفس الشخصين
+chatSchema.index(
+  { participants: 1 },
+  { unique: true }
+);
+
+// ترتيب الشاتات
 chatSchema.index({ updatedAt: -1 });
 
-export default model("Chat", chatSchema);
+
+export const ChatModel = models.Chat || model("Chat", chatSchema);

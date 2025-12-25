@@ -1,75 +1,132 @@
-import jwt from "jsonwebtoken";
-import Chat from "./chat.model.js";
-import Message from "./message.model.js";
+import { verifyToken } from "../../utils/security/jwtToken.security.js";
+import DoctorModel from "../../DB/models/DoctorSchema.js";
+import PatientModel from "../../DB/models/patientSchema.js";
+import { Types } from "mongoose";
+import { ChatModel } from "./chat.model.js";
+
+const connectedSockets = new Map();
 
 //Socket Authentication Middleware
 export const initializeSocket = (io) => {
-  io.use(async(socket, next) => {
+  io.use(async (socket, next) => {
     try {
-      // const token = socket.query.token;
-      console.log(socket);
-      // if (!token) {
-      //   return next(new Error("Authentication error"));
-      // }
+      const { access_token } = socket.handshake.query;
 
-      // const decoded = jwt.verify(token, process.env.JWT_SECRET);
-      // socket.user = decoded;
-      // socket.userId = decoded._id || decoded.id;
+      if (!access_token) {
+        throw new Error("Authentication error access_token must provided");
+      }
+
+      const user = verifyToken("ACCESS_TOKEN", access_token);
+
+      if (!user) {
+        throw new Error("Authentication error Invalid access_token");
+      }
+
+      socket.user = user;
 
       next();
     } catch (error) {
-      next(new Error("Authentication error"));
+      next(error);
     }
   });
 
   // Socket Connection
   io.on("connection", (socket) => {
-    console.log("Socket connected:", socket.userId);
+    if (!connectedSockets.has(socket.user.userId)) {
+      connectedSockets.set(socket.user.userId, new Set());
+      io.emit("online-user", socket.user.userId);
+    }
 
-   
-    // Send Message in real-time
-    socket.on("send_message", async (data) => {
+    connectedSockets.get(socket.user.userId).add(socket.id);
+
+    socket.on("send_message", async (data, callback) => {
       try {
-        const { receiverId, content, type = "text" } = data;
-        if (!receiverId || !content) return;
+        const { receiverId, content, type } = data;
+        const senderId = socket.user.userId;
 
-        const senderId = socket.userId;
-
-        // Doctor ↔ Patient rule
-        const isDoctorSender = socket.user.role === "DOCTOR";
-
-        const chatQuery = isDoctorSender
-          ? { doctor: senderId, patient: receiverId }
-          : { doctor: receiverId, patient: senderId };
-
-        // Find or create chat
-        let chat = await Chat.findOne(chatQuery);
-        if (!chat) {
-          chat = await Chat.create(chatQuery);
+        if (receiverId.toString() === senderId.toString()) {
+          callback("Cannot message yourself");
         }
 
-        // Save message
-        const message = await Message.create({
-          chat: chat._id,
-          sender: senderId,
-          receiver: receiverId,
-          content,
-          type,
+        if (!Types.ObjectId.isValid(receiverId)) {
+          callback("ReceiverId Is Not ObjectId ");
+        }
+
+        if (!receiverId || !content || !type) {
+          callback("Message Must Be Provided [receiverId, content, type]");
+        }
+
+        const [isDoctorSender, isPatientSender] = await Promise.all([
+          DoctorModel.findById(senderId),
+          PatientModel.findById(senderId),
+        ]);
+
+        const [isDoctorReceiver, isPatientReceiver] = await Promise.all([
+          DoctorModel.findById(receiverId),
+          PatientModel.findById(receiverId),
+        ]);
+
+        if (!isDoctorReceiver && !isPatientReceiver) {
+          callback("ReceiverId Not Found");
+        }
+
+        if (isDoctorSender && isDoctorReceiver) {
+          callback("Doctors Cannot Talk to each others");
+        }
+
+        if (isPatientSender && isPatientReceiver) {
+          callback("Patients Talk to each others");
+        }
+
+        // Find or create chat
+        let chat = await ChatModel.findOne({
+          participants: {
+            $all: [
+              new Types.ObjectId(senderId.toString()),
+              new Types.ObjectId(receiverId.toString()),
+            ],
+          },
         });
 
-        // Update chat meta
-        chat.lastMessage = message._id;
-        const unread = chat.unreadCount.get(receiverId.toString()) || 0;
-        chat.unreadCount.set(receiverId.toString(), unread + 1);
+        if (!chat) {
+          chat = await ChatModel.create({
+            participants: [
+              new Types.ObjectId(senderId.toString()),
+              new Types.ObjectId(receiverId.toString()),
+            ],
+          });
+        }
+
+        const message = {
+          content,
+          createdBy: senderId,
+        };
+
+        chat.messages.push(message);
+
         await chat.save();
 
-        // Emit message to receiver
-        io.to(receiverId.toString()).emit("new_message", {
-          chatId: chat._id,
-          message,
-        });
+        const senderSockets = connectedSockets.get(senderId.toString());
+        const receiverSockets = connectedSockets.get(receiverId.toString());
+
+        if (senderSockets && senderSockets.size > 0) {
+          io.to([...senderSockets]).emit("success-message", {
+            content: message.content,
+          });
+        }
+
+        if (receiverSockets && receiverSockets.size > 0) {
+          io.to([...receiverSockets]).emit("new-message", {
+            content: message.content,
+            from: senderId,
+          });
+        }
+
+
+        callback("Message sent Success");
+
       } catch (error) {
-        console.error("send_message error:", error.message);
+        callback(error);
       }
     });
 
@@ -100,5 +157,7 @@ export const initializeSocket = (io) => {
     socket.on("disconnect", () => {
       console.log("Socket disconnected:", socket.userId);
     });
+
+    
   });
 };

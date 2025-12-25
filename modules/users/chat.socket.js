@@ -44,11 +44,6 @@ export const initializeSocket = (io) => {
         const { receiverId, content, type } = data;
         const senderId = socket.user.userId;
 
-
-
-        console.log({receiverId , senderId});
-
-
         if (receiverId.toString() === senderId.toString()) {
           callback("Cannot message yourself");
         }

@@ -1,6 +1,7 @@
 import cookieParser from "cookie-parser";
 import connectDB from "./DB/connect.js";
 import { globalErrorHandler } from "./utils/response/error.response.js";
+import reviewRouter from "./modules/review/review.routes.js";
 
 import cors from "cors";
 import helmet from "helmet";
@@ -52,6 +53,8 @@ const bootstrap = async () => {
     usersRouter
   );
 
+  app.use("/api/reviews", reviewRouter);
+  
   // 404 Router
   app.all("{*dummy}", (req, res) => {
     res.status(404).json({

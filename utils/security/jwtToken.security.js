@@ -23,6 +23,7 @@ export const verifyToken = (tokenType, token) => {
   const { secret } = getAuthConfig(tokenType);
   try {
     return jwt.verify(token, secret);
+            
   } catch (error) {
     throw new UnAuthorizedException(`Invalid or expired ${tokenType}`);
   }
@@ -45,6 +46,8 @@ export const createToken = async (payload, tokenType, userId = null) => {
 };
 
 export const validateToken = async (req, models, tokenType) => {
+
+
   const { key } = getAuthConfig(tokenType);
   const token = req.cookies[key];
   const payload = verifyToken(tokenType, token);

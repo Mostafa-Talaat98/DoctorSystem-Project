@@ -11,6 +11,8 @@ import bookingRouter from "./modules/booking/booking.controller.js";
 import usersRouter from "./modules/users/users.controller.js";
 import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
 import express from "express";
+import { initializeSocket } from "./modules/users/chat.socket.js";
+import { Server } from "socket.io";
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -62,7 +64,19 @@ const bootstrap = async () => {
 
   app.use(globalErrorHandler);
 
-  app.listen(port, () => console.log(`app listening on port ${port}! 🚀`));
+  const httpServer = app.listen(port, () =>
+    console.log(`app listening on port ${port}! 🚀`)
+  );
+
+  const io = new Server(httpServer, {
+    cors: {
+      origin: "*",
+      methods: ["GET", "POST"],
+    },
+  });
+
+
+    initializeSocket(io);
 };
 
 export default bootstrap;

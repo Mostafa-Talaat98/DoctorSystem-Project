@@ -7,10 +7,8 @@ import {
   BadRequestException,
 } from "../../utils/response/error.response.js";
 import { successResponse } from "../../utils/response/success.response.js";
-import Chat from "./chat.model.js";
-import Message from "./message.model.js";
+import ChatModel from "../../DB/models/chat.model.js";
 import mongoose from "mongoose";
-
 
 export const uploadProfilePicture = async (req, res) => {
   const { user } = req;
@@ -43,9 +41,8 @@ export const uploadProfilePicture = async (req, res) => {
       break;
   }
 
-
   if (user.image.public_id) {
-    deleteImageFromCloudinary(user.image.public_id)
+    deleteImageFromCloudinary(user.image.public_id);
   }
 
   const updated = await model.updateOne(
@@ -60,12 +57,9 @@ export const uploadProfilePicture = async (req, res) => {
     }
   );
 
-
   if (!updated.modifiedCount) {
     throw new ApplicationException("Fail to upload image");
   }
-
-
 
   return successResponse({
     res,
@@ -73,14 +67,13 @@ export const uploadProfilePicture = async (req, res) => {
     data: {
       url: secure_url,
       public_id,
-    }
-  })
+    },
+  });
 };
 
-
-// ============================================== 
+// ==============================================
 //Doctor Routes
-// ============================================== 
+// ==============================================
 
 export const toggleLike = async (req, res) => {
   try {
@@ -98,18 +91,33 @@ export const toggleLike = async (req, res) => {
       return res.status(404).json({ message: "Patient not found" });
     }
 
-    const isLiked = doctor.likes ? doctor.likes.some(id => (id._id || id).toString() === patientId.toString()) : false;
+    const isLiked = doctor.likes
+      ? doctor.likes.some(
+          (id) => (id._id || id).toString() === patientId.toString()
+        )
+      : false;
 
     if (isLiked) {
-      await DoctorModel.findByIdAndUpdate(doctorId, { $pull: { likes: patientId } });
-      await PatientModel.findByIdAndUpdate(patientId, { $pull: { favorites: doctorId } });
-      res.status(200).json({ message: "Doctor unlike successfully", isLiked: false });
+      await DoctorModel.findByIdAndUpdate(doctorId, {
+        $pull: { likes: patientId },
+      });
+      await PatientModel.findByIdAndUpdate(patientId, {
+        $pull: { favorites: doctorId },
+      });
+      res
+        .status(200)
+        .json({ message: "Doctor unlike successfully", isLiked: false });
     } else {
-      await DoctorModel.findByIdAndUpdate(doctorId, { $addToSet: { likes: patientId } });
-      await PatientModel.findByIdAndUpdate(patientId, { $addToSet: { favorites: doctorId } });
-      res.status(200).json({ message: "Doctor liked successfully", isLiked: true });
+      await DoctorModel.findByIdAndUpdate(doctorId, {
+        $addToSet: { likes: patientId },
+      });
+      await PatientModel.findByIdAndUpdate(patientId, {
+        $addToSet: { favorites: doctorId },
+      });
+      res
+        .status(200)
+        .json({ message: "Doctor liked successfully", isLiked: true });
     }
-
   } catch (error) {
     console.error("Error toggling like:", error);
     res.status(500).json({ message: "Server Error" });
@@ -132,13 +140,15 @@ export const getDoctorBySpecialty = async (req, res) => {
     let filter = {};
 
     if (specialty) {
-      filter.specialty = new RegExp(`^${specialty}$`, 'i');
+      filter.specialty = new RegExp(`^${specialty}$`, "i");
     }
 
     const doctors = await DoctorModel.find(filter);
 
     if (doctors.length === 0) {
-      return res.status(404).json({ message: "No specialty found with this name" });
+      return res
+        .status(404)
+        .json({ message: "No specialty found with this name" });
     }
 
     res.status(200).json({ count: doctors.length, data: doctors });
@@ -150,7 +160,6 @@ export const getDoctorBySpecialty = async (req, res) => {
 
 export const getDoctorById = async (req, res) => {
   try {
-
     const doctor = await DoctorModel.findById(req.params.id);
 
     if (!doctor) {
@@ -169,13 +178,15 @@ export const getDoctorByName = async (req, res) => {
     let filter = {};
 
     if (name) {
-      filter.fullName = new RegExp(name, 'i');
+      filter.fullName = new RegExp(name, "i");
     }
 
     const doctors = await DoctorModel.find({ ...filter, isActive: true });
 
     if (doctors.length === 0) {
-      return res.status(404).json({ message: "No doctor found with this name" });
+      return res
+        .status(404)
+        .json({ message: "No doctor found with this name" });
     }
     res.status(200).json({ count: doctors.length, data: doctors });
   } catch (error) {
@@ -191,76 +202,114 @@ export const getDoctorByName = async (req, res) => {
 //Get all chats for logged-in user
 export const getChats = async (req, res, next) => {
   const userId = req.user._id;
- const page = Number(req.query.page) || 1;
- const limit = Number(req.query.limit) || 10;
- const skip = (page - 1) * limit;
- const messagesPage = Number(req.query.messagesPage) || 1;
-const messagesLimit = Number(req.query.messagesLimit) || 10;
-const messagesSkip = (messagesPage - 1) * messagesLimit
- const chats = await Chat.aggregate([
-  {
-    $match: {
-      participants: { $in: [userId] }
-    }
-  },
 
-  { $sort: { updatedAt: -1 } },
+  const page = Number(req.query.page) || 1;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
-  { $skip: skip },
-  { $limit: limit },
+  const messagesPage = Number(req.query.messagesPage) || 1;
+  const messagesLimit = Number(req.query.messagesLimit) || 10;
+  const messagesSkip = (messagesPage - 1) * messagesLimit;
 
-  {
-    $project: {
-      participants: 1,
-      lastMessage: 1,
-      messages: {
-        $slice: ["$messages", messagesSkip, messagesLimit]
+  const chats = await ChatModel.aggregate([
+    {
+      $match: {
+        participants: { $in: [userId] },
       },
-      totalMessages: { $size: "$messages" }
-    }
-  }
-]);
-  
+    },
 
-  res.json(chats);
+    { $sort: { updatedAt: -1 } },
+
+    { $skip: skip },
+    { $limit: limit },
+
+    {
+      $project: {
+        participants: 1,
+        lastMessage: 1,
+        messages: {
+          $slice: ["$messages", messagesSkip, messagesLimit],
+        },
+        totalMessages: { $size: "$messages" },
+      },
+    },
+  ]);
+
+  return successResponse({
+    res,
+    data: {
+      chats,
+      pagination: {
+        chats: {
+          currentPage: page,
+          pageSize: limit,
+          totalItems: totalChats,
+          totalPages: Math.ceil(totalChats / limit),
+          hasNextPage: page * limit < totalChats,
+          hasPrevPage: page > 1,
+        },
+
+        messages: {
+          currentPage: messagesPage,
+          pageSize: messagesLimit,
+          hasNextPage: chats.some(
+            (chat) => messagesPage * messagesLimit < chat.totalMessages
+          ),
+          hasPrevPage: messagesPage > 1,
+        },
+      },
+    },
+  });
 };
 
-// Get messages of a chat 
+// Get messages of a chat
 export const getMessages = async (req, res, next) => {
   const { chatUser } = req.params;
   const userId = req.user._id;
   const page = Number(req.query.page) || 1;
- const limit = Number(req.query.limit) || 10;
- const skip = (page - 1) * limit;
+  const limit = Number(req.query.limit) || 10;
+  const skip = (page - 1) * limit;
 
   if (!mongoose.Types.ObjectId.isValid(chatUser)) {
     return res.status(400).json({ message: "Invalid chat id" });
   }
 
-    const messages = await Chat.aggregate([
-  {   
-    $match: {
-      participants: { $in: [userId , chatUser] }
-    }
-  },
-
-  { $sort: { updatedAt: -1 } },
-
-  {
-    $project: {
-      participants: 1,
-      lastMessage: 1,
-      messages: {
-        $slice: ["$messages", skip, limit]
+  const messages = await ChatModel.aggregate([
+    {
+      $match: {
+        participants: { $in: [userId, chatUser] },
       },
-      totalMessages: { $size: "$messages" }
-    }
-  }
-]);
+    },
 
-  res.json({ page, messages });
+    { $sort: { updatedAt: -1 } },
+
+    {
+      $project: {
+        participants: 1,
+        lastMessage: 1,
+        messages: {
+          $slice: ["$messages", skip, limit],
+        },
+        totalMessages: { $size: "$messages" },
+      },
+    },
+  ]);
+
+  return successResponse({
+    res,
+    data: {
+      messages,
+      pagination: {
+        currentPage: page,
+        pageSize: limit,
+        totalItems: totalMessages,
+        totalPages: Math.ceil(totalMessages / limit),
+        hasNextPage: page * limit < totalMessages,
+        hasPrevPage: page > 1,
+      },
+    },
+  });
 };
-
 
 //Mark messages as read
 // export const markAsRead = async (req, res, next) => {
@@ -282,7 +331,6 @@ export const getMessages = async (req, res, next) => {
 
 //   res.json({ message: "Messages marked as read" });
 // };
-
 
 // Favorite / Unfavorite chat
 // export const toggleFavorite = async (req, res, next) => {

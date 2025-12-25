@@ -2,7 +2,7 @@ import { verifyToken } from "../../utils/security/jwtToken.security.js";
 import DoctorModel from "../../DB/models/DoctorSchema.js";
 import PatientModel from "../../DB/models/patientSchema.js";
 import { Types } from "mongoose";
-import ChatModel from "./chat.model.js";
+import ChatModel from "../../DB/models/chat.model.js";
 
 const connectedSockets = new Map();
 

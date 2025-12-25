@@ -3,7 +3,7 @@ import * as reviewController from "./review.controller.js";
 import { authenticateUser } from "../middleware/authenticateUser.middleware.js";
 import { validateRequest } from "../middleware/validateRequest.middleware.js";
 import { createReviewSchema } from "./review.schema.js";
-import { PatientModel } from "../../DB/models/patient.model.js";
+import PatientModel from "../../DB/models/patientSchema.js";
 
 const router = Router();
 

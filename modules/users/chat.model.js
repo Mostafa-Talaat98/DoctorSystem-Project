@@ -56,4 +56,5 @@ chatSchema.index(
 chatSchema.index({ updatedAt: -1 });
 
 
-export const ChatModel = models.Chat || model("Chat", chatSchema);
+const ChatModel = models.Chat || model("Chat", chatSchema);
+export default ChatModel;

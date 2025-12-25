@@ -24,9 +24,8 @@ usersRouter.get("/doctor/:id", getDoctorById);
 
 // Chat Routes
 usersRouter.get("/chats", authenticateUser(), usersService.getChats);
-usersRouter.get("/chats/:chatId", authenticateUser(), usersService.getMessages);
-usersRouter.post("/chats/send", authenticateUser(), usersService.sendMessage);
-usersRouter.patch("/chats/:chatId/read", authenticateUser(), usersService.markAsRead);
-usersRouter.patch("/chats/:chatId/favorite", authenticateUser(), usersService.toggleFavorite);
+usersRouter.get("/chats/:chatUser", authenticateUser(), usersService.getMessages);
+// usersRouter.patch("/chats/:chatId/read", authenticateUser(), usersService.markAsRead);
+// usersRouter.patch("/chats/:chatId/favorite", authenticateUser(), usersService.toggleFavorite);
 
 export default usersRouter;

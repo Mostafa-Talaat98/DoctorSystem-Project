@@ -1,4 +1,4 @@
-import { BadRequestException } from '../../utils/response/error.response.js';
+import { BadRequestException } from '../utils/response/error.response.js';
 
 export const validateRequest = (schema) => (req, res, next) => {
   const data = { ...req.body, ...req.query, ...req.params };

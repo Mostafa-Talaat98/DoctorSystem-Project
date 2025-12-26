@@ -5,6 +5,9 @@ export const sendEmail = async (data) => {
     throw new Error("Missing Email Content!");
   }
 
+
+  console.log(process.env.APP_EMAIL , process.env.APP_PASSWORD)
+
   const transporter = createTransport({
     service: "gmail",
     auth: {

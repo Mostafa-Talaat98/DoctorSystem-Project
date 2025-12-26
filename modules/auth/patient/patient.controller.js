@@ -1,7 +1,7 @@
 import { Router } from 'express';
 import { patientSignUpSchema, registerWithGoogleSchema } from '../auth.schema.js';
 import { patientRegisterWithGmail, registerPatient } from './patient.service.js';
-import { validateRequest } from '../../middleware/validateRequest.middleware.js';
+import { validateRequest } from '../../../middleware/validateRequest.middleware.js';
 
 const patientRouter = Router();
 

@@ -1,5 +1,5 @@
 import { Router } from "express";
-import { authenticateUser } from "../middleware/authenticateUser.middleware.js";
+import { authenticateUser } from "../../middleware/authenticateUser.middleware.js";
 import {
   createBooking,
   getBooking,

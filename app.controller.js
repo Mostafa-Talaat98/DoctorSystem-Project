@@ -1,3 +1,7 @@
+import dotenv from 'dotenv'
+import path from "path";
+dotenv.config({ path: path.resolve("./.env") });
+
 import cookieParser from "cookie-parser";
 import connectDB from "./DB/connect.js";
 import { globalErrorHandler } from "./utils/response/error.response.js";
@@ -10,10 +14,13 @@ import { createRateLimiter } from "./utils/security/rate.limit.js";
 import authRouter from "./modules/auth/auth.controller.js";
 import bookingRouter from "./modules/booking/booking.controller.js";
 import usersRouter from "./modules/users/users.controller.js";
-import { authenticateUser } from "./modules/middleware/authenticateUser.middleware.js";
+import { authenticateUser } from "./middleware/authenticateUser.middleware.js";
 import express from "express";
-import { initializeSocket } from "./modules/users/chat.socket.js";
 import { Server } from "socket.io";
+import { initializeSocket } from './modules/chats/chat.socket.js';
+import chatRouter from './modules/chats/chat.controller.js';
+
+
 
 const app = express();
 const port = process.env.PORT || 3000;
@@ -44,9 +51,19 @@ export const bootstrap = async () => {
 
   app.use(
     "/api/booking",
+    authenticateUser(),
     createRateLimiter(1000, 60 * 60 * 1000),
     bookingRouter
   );
+
+
+    app.use(
+    "/api/chat",
+    authenticateUser(),
+    createRateLimiter(1000, 60 * 60 * 1000),
+    chatRouter
+  );
+  
 
   app.use(
     "/api/user",

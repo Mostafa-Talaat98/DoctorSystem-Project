@@ -9,7 +9,7 @@ import {
 import {
   validateCookies,
   validateRequest,
-} from "../middleware/validateRequest.middleware.js";
+} from "../../middleware/validateRequest.middleware.js";
 import { reSendEmailOtp } from "./Otp/otp.service.js";
 import {
   login,
